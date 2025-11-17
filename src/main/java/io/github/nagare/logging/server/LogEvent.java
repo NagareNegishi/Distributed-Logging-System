@@ -10,7 +10,7 @@ import java.util.Objects;
  */
 public class LogEvent {
 
-    @JsonProperty(required = true)
+    // @JsonProperty(required = false)
     private String id; // $uuid - generated server-side if not provided
 
     @JsonProperty(required = true)
