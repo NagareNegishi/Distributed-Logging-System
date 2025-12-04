@@ -1,5 +1,7 @@
 package io.github.nagare.logging.log4j;
 
+import io.github.nagare.logging.server.Persistency;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.Level;
@@ -31,6 +33,8 @@ public class HttpAppenderTest {
     public void setUp() {
         logger = Logger.getLogger("HttpAppender");
         appender = new HttpAppender();
+        // Clear Persistency.DB
+        Persistency.DB.clear();
     }
 
     // Helper method to create events when needed
@@ -89,13 +93,22 @@ public class HttpAppenderTest {
     }
 
     @Test
-    public void testAppend() {
+    public void testAppend1() {
         Assumptions.assumeTrue(isServerRunning("http://localhost:8080/logstore/logs"),
                 "Server must be running for this test");
         List<LoggingEvent> events = createEvents(3);
         events.forEach(appender::append);
         assertEquals(3, appender.getSuccessCount());
         assertEquals(0, appender.getFailureCount());
+    }
+
+    @Test
+    public void testAppend2() {
+        Assumptions.assumeTrue(isServerRunning("http://localhost:8080/logstore/logs"),
+                "Server must be running for this test");
+        List<LoggingEvent> events = createEvents(3);
+        events.forEach(appender::append);
+        assertEquals(3, Persistency.DB.size());
     }
 
     @Test
