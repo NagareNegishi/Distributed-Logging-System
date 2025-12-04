@@ -19,23 +19,27 @@ public class HttpAppender extends AppenderSkeleton  {
 
     private String url = "http://localhost:8080/logstore/logs"; // for development stage
     private JsonLayout jsonLayout = new JsonLayout();
-    private HttpClient httpClient = HttpClient.newHttpClient();
+    private HttpClient httpClient;
 
-    /**
-     * Sets the target URL for the remote logging service.
-     * @param url the endpoint URL
-     */
-    public void setUrl(String url) {
-        this.url = url;
-    }
+    private long successCount = 0;
+    private long failureCount = 0;
 
-
-    /**
-     * Gets the current target URL.
-     * @return the endpoint URL
-     */
+    // Getter
     public String getUrl() {
         return url;
+    }
+
+    public long getSuccessCount() {
+        return successCount;
+    }
+
+    public long getFailureCount() {
+        return failureCount;
+    }
+
+    // Setter
+    public void setUrl(String url) {
+        this.url = url;
     }
 
 
@@ -73,4 +77,6 @@ public class HttpAppender extends AppenderSkeleton  {
     public boolean requiresLayout() {
         return false;
     }
+
+
 }
