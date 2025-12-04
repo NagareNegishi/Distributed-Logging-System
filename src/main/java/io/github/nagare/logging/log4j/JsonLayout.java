@@ -1,5 +1,6 @@
 package io.github.nagare.logging.log4j;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.log4j.Layout;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
@@ -23,9 +24,7 @@ import io.github.nagare.logging.server.LogEvent;
  */
 public class JsonLayout extends Layout {
 
-    private final ObjectMapper mapper = new ObjectMapper();
-    // Uncomment line below for pretty printing (but tests expect compact format):
-    //.configure(SerializationFeature.INDENT_OUTPUT, true);
+    private final ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true);
 
     /**
      * Format logging event to JSON strings representing a valid JSON object, the format is:

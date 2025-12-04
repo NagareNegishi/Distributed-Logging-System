@@ -55,17 +55,17 @@ public class JsonLayoutTest {
         // Validate JSON strings
         LoggingEvent event = createEvent(Level.WARN, "something went wrong");
         String result = layout.format(event);
-        //System.out.println(result);
+//        System.out.println(result);
         assertTrue(result.startsWith("{"));
         assertTrue(result.endsWith("}"));
-        assertTrue(result.contains("\"logger\":\"JsonLayout\""));
-        assertTrue(result.contains("\"level\":\"WARN\""));
-        assertTrue(result.contains("\"timestamp\":"));
-        String afterTimestamp = result.split("\"timestamp\":\"")[1];
+        assertTrue(result.contains("\"logger\" : \"JsonLayout\""));
+        assertTrue(result.contains("\"level\" : \"WARN\""));
+        assertTrue(result.contains("\"timestamp\" : "));
+        String afterTimestamp = result.split("\"timestamp\" : \"")[1];
         String timestampValue = afterTimestamp.split("\"")[0];
         assertDoesNotThrow(() -> Instant.parse(timestampValue));
-        assertTrue(result.contains("\"thread\":\"main\""));
-        assertTrue(result.contains("\"message\":\"something went wrong\""));
+        assertTrue(result.contains("\"thread\" : \"main\""));
+        assertTrue(result.contains("\"message\" : \"something went wrong\""));
     }
 
     @Test
