@@ -1,6 +1,5 @@
 package io.github.nagare.logging.log4j;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.log4j.Layout;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
@@ -9,6 +8,7 @@ import java.time.Instant;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import io.github.nagare.logging.server.LogEvent;
 

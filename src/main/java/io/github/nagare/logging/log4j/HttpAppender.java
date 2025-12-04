@@ -3,7 +3,12 @@ package io.github.nagare.logging.log4j;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.AppenderSkeleton;
 
-import io.github.nagare.logging.log4j.JsonLayout;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URI;
+import java.time.Duration;
+import java.net.ConnectException;
 
 /**
  * Appender sends logs via HTTP POST to LogServlet.
@@ -14,6 +19,25 @@ public class HttpAppender extends AppenderSkeleton  {
 
     private String url = "http://localhost:8080/logstore/logs"; // for development stage
     private JsonLayout jsonLayout = new JsonLayout();
+    private HttpClient httpClient = HttpClient.newHttpClient();
+
+    /**
+     * Sets the target URL for the remote logging service.
+     * @param url the endpoint URL
+     */
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+
+    /**
+     * Gets the current target URL.
+     * @return the endpoint URL
+     */
+    public String getUrl() {
+        return url;
+    }
+
 
     /**
      * Subclasses of AppenderSkeleton should implement this method to perform actual logging
@@ -22,6 +46,14 @@ public class HttpAppender extends AppenderSkeleton  {
     @Override
     protected void append(LoggingEvent loggingEvent) {
 
+    }
+
+    /**
+     * Sends JSON log data to the server via HTTP POST.
+     * @param json LogEvent in json format
+     */
+    private void sendHttpPost(String json) {
+        // HTTP POST implementation
     }
 
     /**
