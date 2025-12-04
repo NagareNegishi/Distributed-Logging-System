@@ -55,7 +55,7 @@ public class JsonLayoutTest {
         // Validate JSON strings
         LoggingEvent event = createEvent(Level.WARN, "something went wrong");
         String result = layout.format(event);
-        System.out.println(result);
+        //System.out.println(result);
         assertTrue(result.startsWith("{"));
         assertTrue(result.endsWith("}"));
         assertTrue(result.contains("\"logger\":\"JsonLayout\""));
@@ -75,11 +75,13 @@ public class JsonLayoutTest {
         String result = layout.format(event);
         JsonNode node = mapper.readTree(result); // parse the JSON produced
         assertEquals(7, node.size());
+        assertTrue(node.has("id"));
         assertTrue(node.has("logger"));
         assertTrue(node.has("level"));
         assertTrue(node.has("timestamp"));
         assertTrue(node.has("thread"));
         assertTrue(node.has("message"));
+        assertTrue(node.has("errorDetails"));
         assertEquals(event.getLoggerName(), node.get("logger").asText());
         assertEquals(event.getLevel().toString(), node.get("level").asText());
         long stamp = event.getTimeStamp();
@@ -113,6 +115,26 @@ public class JsonLayoutTest {
                 assertEquals(message, node.get("message").asText());
             }
         }
+    }
+
+    @Test
+    public void testFormat4() throws JsonProcessingException {
+        // Verify exception handling
+        Exception ex = new NullPointerException("Test exception");
+        LoggingEvent event = new LoggingEvent(
+                logger.getName(),
+                logger,
+                Level.ERROR,
+                "Test NullPointerException",
+                ex
+        );
+        String result = layout.format(event);
+        JsonNode node = mapper.readTree(result);
+        // Should have errorDetails populated
+        assertFalse(node.get("errorDetails").isNull());
+        String errorDetails = node.get("errorDetails").asText();
+        assertTrue(errorDetails.contains("NullPointerException"));
+        assertTrue(errorDetails.contains("Test exception"));
     }
 
     // Tests for ignoresThrowable()
