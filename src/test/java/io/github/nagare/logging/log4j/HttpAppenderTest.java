@@ -14,10 +14,16 @@ import java.net.http.HttpResponse;
 import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
 
 public class HttpAppenderTest {
 
@@ -30,6 +36,12 @@ public class HttpAppenderTest {
     public void setUp() {
         logger = Logger.getLogger("HttpAppender");
         appender = new HttpAppender();
+    }
+
+    // Unregisters MBean
+    @AfterEach
+    public void cleanUp() {
+        cleanupAppender(appender);
     }
 
     // Helper method to create events when needed
@@ -71,14 +83,35 @@ public class HttpAppenderTest {
         }
     }
 
+    // Helper method to Unregisters MBean
+    private void cleanupAppender(HttpAppender appender) {
+        try {
+            ObjectName objectName = new ObjectName("io.github.nagare.logging.log4j:type=HttpAppender,name=" + appender.getName());
+            MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+            if (server.isRegistered(objectName)) {
+                server.unregisterMBean(objectName);
+            }
+        } catch (Exception ignored) {}
+    }
+
 
     @Test
     public void testConstructor1() {
         // test default behavior
-//        assertNotNull(appender.getName());
+        assertNotNull(appender.getName());
+        assertTrue(appender.getName().startsWith("HttpAppenderMBean-"));
         assertEquals("http://localhost:8080/logstore/logs", appender.getUrl());
         assertEquals(0, appender.getSuccessCount());
         assertEquals(0, appender.getFailureCount());
+    }
+
+    @Test
+    public void testConstructor2() {
+        // test default behavior with different instance
+        HttpAppender appender2 = new HttpAppender();
+        assertTrue(appender2.getName().startsWith("HttpAppenderMBean-"));
+        assertNotEquals(appender.getName(), appender2.getName());
+        cleanupAppender(appender2);
     }
 
     @Test
@@ -142,6 +175,59 @@ public class HttpAppenderTest {
     @Test
     public void testRequiresLayout() {
         assertFalse(appender.requiresLayout());
+    }
+
+    @Test
+    public void testSetName1() {
+        appender.setName("Test1");
+        assertEquals("Test1", appender.getName());
+        appender.setName("Test2");
+        assertNotEquals("Test1", appender.getName());
+        assertEquals("Test2", appender.getName());
+    }
+
+    @Test
+    public void testSetName2() throws Exception {
+        // verify registration
+        appender.setName("TestRegister");
+        ObjectName expected = new ObjectName("io.github.nagare.logging.log4j:type=HttpAppender,name=" + "TestRegister");
+        MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+        assertTrue(server.isRegistered(expected));
+        server.unregisterMBean(expected);
+    }
+
+    @Test
+    public void testSetName3() throws Exception {
+        // test unregister
+        appender.setName("TestRegister");
+        ObjectName expected = new ObjectName("io.github.nagare.logging.log4j:type=HttpAppender,name=" + "TestRegister");
+        MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+        appender.setName("TestRegister"); // unregistered and re-registered
+        assertTrue(server.isRegistered(expected));
+
+        // test InstanceAlreadyExistsException
+        HttpAppender appender2 = new HttpAppender(); // Need another instance to cause name conflict
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> appender2.setName("TestRegister"));
+        assertTrue(exception.getMessage().startsWith("MBean already registered with this name: "));
+        server.unregisterMBean(expected);
+    }
+
+    @Test
+    public void testSetName4() {
+        // test MalformedObjectNameException
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> appender.setName("="));
+        assertTrue(exception.getMessage().startsWith("Invalid MBean name: "));
+    }
+
+    @Test
+    public void testSetName5() {
+        // test null and empty
+        assertThrows(IllegalArgumentException.class, () -> appender.setName(null));
+        assertThrows(IllegalArgumentException.class, () -> appender.setName(""));
     }
 
 }
