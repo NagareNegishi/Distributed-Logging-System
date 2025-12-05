@@ -1,16 +1,12 @@
 package io.github.nagare.logging.server;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
-
 
 /**
  * Unified log event model used across all system components.
  */
 public class LogEvent {
 
-    // @JsonProperty(required = false)
     private String id; // $uuid - generated server-side if not provided
 
     @JsonProperty(required = true)
@@ -79,11 +75,15 @@ public class LogEvent {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         LogEvent logEvent = (LogEvent) o;
-        return Objects.equals(id, logEvent.id);
+        return Objects.equals(message, logEvent.message) &&
+                Objects.equals(timestamp, logEvent.timestamp) &&
+                Objects.equals(thread, logEvent.thread) &&
+                Objects.equals(logger, logEvent.logger) &&
+                Objects.equals(level, logEvent.level);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return Objects.hash(message, timestamp, thread, logger, level);
     }
 }

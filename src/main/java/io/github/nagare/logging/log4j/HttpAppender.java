@@ -10,14 +10,24 @@ import java.net.URI;
 import java.time.Duration;
 import java.net.ConnectException;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.MalformedObjectNameException;
+
+
 /**
  * Appender sends logs via HTTP POST to LogServlet.
  * It will use JsonLayout to convert LoggingEvent for valid input for LogServlet.
  * It will use localhost for development, but user need to provide url of where LogServlet runs.
  */
-public class HttpAppender extends AppenderSkeleton  {
+public class HttpAppender extends AppenderSkeleton implements HttpAppenderMBean {
 
     private static final String DEFAULT_URL = "http://localhost:8080/logstore/logs"; // for development stage
+    private static int instanceCounter = 0;
 
     private String url = DEFAULT_URL;
     private final JsonLayout jsonLayout = new JsonLayout();
@@ -30,6 +40,8 @@ public class HttpAppender extends AppenderSkeleton  {
      */
     public HttpAppender() {
         this.httpClient = HttpClient.newHttpClient();
+        instanceCounter++;
+        setName("HttpAppenderMBean-" + instanceCounter);
     }
 
     // Getter
@@ -39,6 +51,20 @@ public class HttpAppender extends AppenderSkeleton  {
 
     // Setter
     public void setUrl(String url) { this.url = url; }
+
+    /**
+     * Overrides AppenderSkeleton's setName() to add MBean registration.
+     * @param name name of this appender
+     */
+    @Override
+    public void setName(String name) {
+        if (name == null || name.isEmpty()) {
+            throw new IllegalArgumentException("name cannot be null or empty");
+        }
+        unregisterMBean();
+        super.setName(name);
+        registerMBean();
+    }
 
 
     /**
@@ -111,6 +137,43 @@ public class HttpAppender extends AppenderSkeleton  {
     @Override
     public boolean requiresLayout() {
         return false;
+    }
+
+    /**
+     * Register this MemAppender as an MBean with the platform MBeanServer
+     */
+    private void registerMBean() {
+        try {
+            // package name + type = class name + name = instance name
+            ObjectName objectName = new ObjectName("io.github.nagare.logging.log4j:type=HttpAppender,name=" + this.name);
+            MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+            server.registerMBean(this, objectName);
+        } catch (InstanceAlreadyExistsException e) {
+            throw new RuntimeException("MBean already registered with this name: " + e.getMessage(), e);
+        } catch (MBeanRegistrationException | NotCompliantMBeanException e) {
+            throw new RuntimeException("MBean registration error: " + e.getMessage(), e);
+        } catch (MalformedObjectNameException e) {
+            throw new RuntimeException("Invalid MBean name: " + e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * Unregisters this MemAppender as an MBean with the platform MBeanServer
+     */
+    private void unregisterMBean() {
+        if (this.name == null) {
+            return;
+        }
+        try {
+            ObjectName objectName = new ObjectName("io.github.nagare.logging.log4j:type=HttpAppender,name=" + this.name);
+            MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+            if (server.isRegistered(objectName)) {
+                server.unregisterMBean(objectName);
+            }
+        } catch (Exception e) { // checked exceptions are difficult to simulate for this private method
+            throw new RuntimeException("Failed to unregister MBean: " + e.getMessage(), e);
+        }
     }
 
 }

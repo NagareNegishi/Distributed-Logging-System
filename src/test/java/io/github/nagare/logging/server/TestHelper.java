@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.UUID;
 
 
-
 /**
  * Utility class providing helper methods for testing log servlets.
  * Contains methods for JSON parsing, test data generation, and database population.
