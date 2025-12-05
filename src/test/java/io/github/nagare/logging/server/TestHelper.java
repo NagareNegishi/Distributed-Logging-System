@@ -3,12 +3,14 @@ package io.github.nagare.logging.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Duration;
+import java.time.Instant;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
 
 
 /**
@@ -24,7 +26,6 @@ public class TestHelper {
     private static final List<String> LOG_EVENT_LEVELS = List.of(
             "trace", "debug", "info", "warn", "error", "fatal"
     );
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
 
     /**
@@ -67,7 +68,7 @@ public class TestHelper {
      * @return JSON string representation of the log event
      */
     public static String createLogJson(String id, String message, String level, int order) {
-        String timestamp = LocalDateTime.now().minusMinutes(order).format(FORMATTER);
+        String timestamp = Instant.now().minus(Duration.ofMinutes(order)).toString();
         return String.format("""
             {
                 "id": "%s",
@@ -91,7 +92,7 @@ public class TestHelper {
      * @return JSON string representation of the log event
      */
     public static String createLogJsonWithLogger(String id, String message, String logger, String level, int order) {
-        String timestamp = LocalDateTime.now().minusMinutes(order).format(FORMATTER);
+        String timestamp = Instant.now().minus(Duration.ofMinutes(order)).toString();
         return String.format("""
             {
                 "id": "%s",

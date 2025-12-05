@@ -7,8 +7,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -39,7 +38,7 @@ public class TestGetLogs {
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "debug",
@@ -59,7 +58,7 @@ public class TestGetLogs {
         assertTrue(result.startsWith("["));
         assertTrue(result.endsWith("]"));
         assertTrue(result.contains("d290f1ee-6c54-4b01-90e6-d701748f0851"));
-        assertTrue(result.contains("04-05-2021 13:30:45"));
+        assertTrue(result.contains("2024-12-05T14:30:45.000Z"));
         LogEvent[] resultEvents = TestHelper.createLogEventArray(result);
         assertEquals(1, resultEvents.length);
         LogEvent resultEvent = resultEvents[0];
@@ -154,7 +153,7 @@ public class TestGetLogs {
         assertEquals(400, response.getStatus());
         assertEquals("text/plain", response.getContentType());
         assertTrue(response.getContentAsString().contains(
-                "Invalid log level. Must be one of: all, trace, debug, info, warn, error, fatal, off"));
+                "Invalid log level. Must be one of: ALL, TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF"));
     }
 
     @Test
@@ -182,11 +181,10 @@ public class TestGetLogs {
         assertEquals(5, resultEvents.length);
         assertTrue(resultEvents[0].getMessage().contains("Test message 0"));
 
-        // keep order but extract timestamp as LocalDateTime
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-        List<LocalDateTime> timestamps = Arrays.stream(resultEvents)
+        // keep order but extract timestamp
+        List<Instant> timestamps = Arrays.stream(resultEvents)
                 .map(LogEvent::getTimestamp)
-                .map(ts -> LocalDateTime.parse(ts, formatter))
+                .map(Instant::parse)
                 .toList();
         boolean isDescending = IntStream.range(0, timestamps.size() - 1)
                 .allMatch(i -> timestamps.get(i).isAfter(timestamps.get(i + 1)));
@@ -205,7 +203,7 @@ public class TestGetLogs {
         String result = response.getContentAsString();
         LogEvent[] resultEvents = TestHelper.createLogEventArray(result);
 
-        List<String> expectedLevels = Arrays.asList("warn", "error", "fatal"); // "off" shouldn't exist
+        List<String> expectedLevels = Arrays.asList("WARN", "ERROR", "FATAL"); // "off" shouldn't exist
         List<LogEvent> filteredDB = Persistency.DB.stream()
                 .filter(log -> expectedLevels.contains(log.getLevel()))
                 .limit(20)
@@ -257,13 +255,12 @@ public class TestGetLogs {
 
     @Test
     public void testDoGet16() throws ServletException, IOException {
-        // test level is case-sensitive
+        // test level is not case-sensitive (auto convert to Upper case)
         TestHelper.populateDB(3);
         request.setParameter("limit", "20");
-        request.setParameter("level", "DEBUG");
+        request.setParameter("level", "Debug");
         servlet.doGet(request, response);
-        assertEquals(400, response.getStatus());
-        assertTrue(response.getContentAsString().contains("Invalid log level"));
+        assertEquals(200, response.getStatus());
     }
 
     @Test
@@ -286,7 +283,7 @@ public class TestGetLogs {
         assertEquals(400, response.getStatus());
         assertEquals("text/plain", response.getContentType());
         assertTrue(response.getContentAsString().contains(
-                "Invalid log level. Must be one of: all, trace, debug, info, warn, error, fatal, off"));
+                "Invalid log level. Must be one of: ALL, TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF"));
     }
 
 }

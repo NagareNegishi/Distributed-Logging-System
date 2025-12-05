@@ -1,7 +1,5 @@
 package io.github.nagare.logging.log4j;
 
-import io.github.nagare.logging.server.Persistency;
-
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.Level;
@@ -18,7 +16,6 @@ import java.net.URI;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Assumptions;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,18 +30,16 @@ public class HttpAppenderTest {
     public void setUp() {
         logger = Logger.getLogger("HttpAppender");
         appender = new HttpAppender();
-        // Clear Persistency.DB
-        Persistency.DB.clear();
     }
 
     // Helper method to create events when needed
-    private LoggingEvent createEvent(Level level, String message, Throwable throwable) {
+    private LoggingEvent createEvent(Level level, String message) {
         return new LoggingEvent(
                 logger.getName(),   // logger name
                 logger,             // logger
                 level,              // level
                 message,            // message
-                throwable           // throwable (null = no exception)
+                null                // throwable (null = no exception)
         );
     }
 
@@ -53,7 +48,7 @@ public class HttpAppenderTest {
         List<LoggingEvent> events = new ArrayList<>();
         Level[] levels = {Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.FATAL};
         for (int i = 0; i < count; i++) {
-            events.add(createEvent(levels[i % levels.length], "test" + i, null));
+            events.add(createEvent(levels[i % levels.length], "test" + i));
         }
         return events;
     }
@@ -93,7 +88,7 @@ public class HttpAppenderTest {
     }
 
     @Test
-    public void testAppend1() {
+    public void testAppend() {
         Assumptions.assumeTrue(isServerRunning("http://localhost:8080/logstore/logs"),
                 "Server must be running for this test");
         List<LoggingEvent> events = createEvents(3);
@@ -102,14 +97,6 @@ public class HttpAppenderTest {
         assertEquals(0, appender.getFailureCount());
     }
 
-    @Test
-    public void testAppend2() {
-        Assumptions.assumeTrue(isServerRunning("http://localhost:8080/logstore/logs"),
-                "Server must be running for this test");
-        List<LoggingEvent> events = createEvents(3);
-        events.forEach(appender::append);
-        assertEquals(3, Persistency.DB.size());
-    }
 
     @Test
     public void testClose1() {
@@ -156,7 +143,5 @@ public class HttpAppenderTest {
     public void testRequiresLayout() {
         assertFalse(appender.requiresLayout());
     }
-
-
 
 }

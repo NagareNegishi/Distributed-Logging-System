@@ -11,8 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.UUID;
 import java.util.Comparator;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 
 import java.time.format.DateTimeParseException;
 import java.io.IOException;
@@ -30,7 +29,6 @@ public class LogsServlet extends HttpServlet{
     private static final List<String> LEVELS = List.of(
             "ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OFF"
     );
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
 
     // Explicitly defined default constructor
@@ -52,7 +50,8 @@ public class LogsServlet extends HttpServlet{
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // Parse and verify limit/level parameters
         String limitParam = req.getParameter("limit");
-        String levelParam = req.getParameter("level").toUpperCase();
+        String tempLevel = req.getParameter("level");
+        String levelParam = (tempLevel == null) ? null : tempLevel.toUpperCase();
         String validationError = validateGetParameters(limitParam, levelParam); // Validate required fields
         if (validationError != null) {
             sendError(resp, 400, validationError);
@@ -74,12 +73,12 @@ public class LogsServlet extends HttpServlet{
 
 
     /**
-     * Parses the timestamp string from a log event into a LocalDateTime object.
+     * Parses the timestamp string from a log event into a Instant object.
      * @param log the LogEvent containing the timestamp to parse
-     * @return the parsed LocalDateTime
+     * @return the parsed Instant
      */
-    private LocalDateTime parseTimestamp(LogEvent log) {
-        return LocalDateTime.parse(log.getTimestamp(), FORMATTER);
+    private Instant parseTimestamp(LogEvent log) {
+        return Instant.parse(log.getTimestamp());
     }
 
 
@@ -161,12 +160,12 @@ public class LogsServlet extends HttpServlet{
             return;
         }
         // Prevent duplication
-//        boolean duplicate = Persistency.DB.stream()
-//                .anyMatch(existing -> logEvent.getId().equals(existing.getId()));
-//        if (duplicate) {
-//            sendError(resp, 409, "A log event with this id already exists");
-//            return;
-//        }
+        boolean duplicate = Persistency.DB.stream()
+                .anyMatch(existing -> logEvent.getId().equals(existing.getId()));
+        if (duplicate) {
+            sendError(resp, 409, "A log event with this id already exists");
+            return;
+        }
         Persistency.DB.add(logEvent);
         resp.setStatus(201);
     }
@@ -178,22 +177,24 @@ public class LogsServlet extends HttpServlet{
      * @return null if parameters are valid, corresponding error message otherwise
      */
     private String validateLogEvent(LogEvent logEvent) {
-//        if (logEvent.getId() == null) return "Missing required field: id";
         if (logEvent.getMessage() == null) return "Missing required field: message";
         if (logEvent.getTimestamp() == null) return "Missing required field: timestamp";
         if (logEvent.getThread() == null) return "Missing required field: thread";
         if (logEvent.getLogger() == null) return "Missing required field: logger";
         if (logEvent.getLevel() == null) return "Missing required field: level";
-//        if (!isValidId(logEvent.getId())) return "Invalid UUID format for id";
-//        if (!isValidTimestamp(logEvent.getTimestamp())) {
-//            return "Invalid timestamp format. Expected: dd-MM-yyyy HH:mm:ss";
-//        }
+        if (!isValidId(logEvent)) return "Invalid UUID format for id";
+        if (!isValidTimestamp(logEvent.getTimestamp())) {
+            return "Invalid timestamp format. Expected: ISO-8601 format";
+        }
+
+        // Normalize level to uppercase
+        logEvent.setLevel(logEvent.getLevel().toUpperCase());
         String level = logEvent.getLevel();
         if (!isValidLevel(level)) {
             return "Invalid log level. Must be one of: TRACE, DEBUG, INFO, WARN, ERROR, FATAL";
         }
         if (level.equals("ALL") || level.equals("OFF")) {
-            return "Invalid log level. all and off are filter settings, not valid log levels";
+            return "Invalid log level. ALL and OFF are filter settings, not valid log levels";
         }
         return null;
     }
@@ -201,11 +202,17 @@ public class LogsServlet extends HttpServlet{
 
     /**
      * Validates that the given string is a valid UUID format.
+     * If ID is not provided, generate one for LogEvent.
      * <a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">...</a>
-     * @param id the UUID string to validate
+     * @param logEvent the LogEvent to validate
      * @return true if valid UUID format, false otherwise
      */
-    private boolean isValidId(String id) {
+    private boolean isValidId(LogEvent logEvent) {
+        String id = logEvent.getId();
+        if (id == null) { // generate UUID
+            logEvent.setId(UUID.randomUUID().toString());
+            return true;
+        }
         try {
             UUID.fromString(id);
             return true;
@@ -216,13 +223,13 @@ public class LogsServlet extends HttpServlet{
 
 
     /**
-     * Validates that the timestamp matches the expected format (dd-MM-yyyy HH:mm:ss).
+     * Validates that the timestamp matches ISO-8601 format.
      * @param timestamp the timestamp string to validate
      * @return true if valid format, false otherwise
      */
     private boolean isValidTimestamp(String timestamp) {
         try {
-            LocalDateTime.parse(timestamp, FORMATTER);
+            Instant.parse(timestamp);
             return true;
         } catch (DateTimeParseException e){
             return false;

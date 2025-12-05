@@ -52,7 +52,7 @@ public class TestPostLogs {
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "debug",
@@ -77,11 +77,11 @@ public class TestPostLogs {
 
     @Test
     public void testDoPost4() throws ServletException, IOException {
-        // test Missing id
+        // test Missing id (it's optional)
         String jsonLog = """
                 {
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "debug",
@@ -91,9 +91,7 @@ public class TestPostLogs {
         request.setContentType("application/json");
         request.setContent(jsonLog.getBytes());
         servlet.doPost(request, response);
-        assertEquals(400, response.getStatus());
-        assertEquals("text/plain", response.getContentType());
-        assertTrue(response.getContentAsString().contains("Missing required field: id"));
+        assertEquals(201, response.getStatus());
     }
 
     @Test
@@ -102,7 +100,7 @@ public class TestPostLogs {
         String jsonLog = """
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "debug",
@@ -145,7 +143,7 @@ public class TestPostLogs {
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "logger": "com.example.Foo",
                   "level": "debug",
                   "errorDetails": "string"
@@ -166,7 +164,7 @@ public class TestPostLogs {
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "level": "debug",
                   "errorDetails": "string"
@@ -187,7 +185,7 @@ public class TestPostLogs {
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "errorDetails": "string"
@@ -208,7 +206,7 @@ public class TestPostLogs {
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "debug"
@@ -228,7 +226,7 @@ public class TestPostLogs {
                 {
                   "id": "Invalid-UUID-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "debug",
@@ -262,7 +260,7 @@ public class TestPostLogs {
         servlet.doPost(request, response);
         assertEquals(400, response.getStatus());
         assertEquals("text/plain", response.getContentType());
-        assertTrue(response.getContentAsString().contains("Invalid timestamp format. Expected: dd-MM-yyyy HH:mm:ss"));
+        assertTrue(response.getContentAsString().contains("Invalid timestamp format. Expected: ISO-8601 format"));
     }
 
     @Test
@@ -272,7 +270,7 @@ public class TestPostLogs {
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "Invalid",
@@ -285,7 +283,7 @@ public class TestPostLogs {
         assertEquals(400, response.getStatus());
         assertEquals("text/plain", response.getContentType());
         assertTrue(response.getContentAsString().contains(
-                "Invalid log level. Must be one of: trace, debug, info, warn, error, fatal"));
+                "Invalid log level. Must be one of: TRACE, DEBUG, INFO, WARN, ERROR, FATAL"));
     }
 
     @Test
@@ -309,7 +307,7 @@ public class TestPostLogs {
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "off",
@@ -322,7 +320,7 @@ public class TestPostLogs {
         assertEquals(400, response.getStatus());
         assertEquals("text/plain", response.getContentType());
         assertTrue(response.getContentAsString().contains(
-                "Invalid log level. all and off are filter settings, not valid log levels"));
+                "Invalid log level. ALL and OFF are filter settings, not valid log levels"));
     }
 
     @Test
@@ -332,7 +330,7 @@ public class TestPostLogs {
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "all",
@@ -345,7 +343,7 @@ public class TestPostLogs {
         assertEquals(400, response.getStatus());
         assertEquals("text/plain", response.getContentType());
         assertTrue(response.getContentAsString().contains(
-                "Invalid log level. all and off are filter settings, not valid log levels"));
+                "Invalid log level. ALL and OFF are filter settings, not valid log levels"));
     }
 
     @Test
@@ -355,7 +353,7 @@ public class TestPostLogs {
                 {
                   "id": d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "debug",
@@ -377,7 +375,7 @@ public class TestPostLogs {
                 {
                   "id": d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
                   "level": "debug",
@@ -393,25 +391,22 @@ public class TestPostLogs {
 
     @Test
     public void testDoPost19() throws ServletException, IOException {
-        // test level is case-sensitive
+        // test level is not case-sensitive
         String jsonLog = """
                 {
                   "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
                   "message": "application started",
-                  "timestamp": "04-05-2021 13:30:45",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
                   "thread": "main",
                   "logger": "com.example.Foo",
-                  "level": "DEBUG",
+                  "level": "Debug",
                   "errorDetails": "string"
                 }
                 """;
         request.setContentType("application/json");
         request.setContent(jsonLog.getBytes());
         servlet.doPost(request, response);
-        assertEquals(400, response.getStatus());
-        assertEquals("text/plain", response.getContentType());
-        assertTrue(response.getContentAsString().contains(
-                "Invalid log level. Must be one of: trace, debug, info, warn, error, fatal"));
+        assertEquals(201, response.getStatus());
     }
 
     @Test
@@ -424,7 +419,7 @@ public class TestPostLogs {
         assertEquals(400, response.getStatus());
         assertEquals("text/plain", response.getContentType());
         assertTrue(response.getContentAsString().contains(
-                "Missing required field: id"));
+                "Missing required field: message"));
     }
 
     @Test
@@ -434,7 +429,7 @@ public class TestPostLogs {
             {
               "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
               "message": "application started",
-              "timestamp": "04-05-2021 13:30:45",
+              "timestamp": "2024-12-05T14:30:45.000Z",
               "thread": "main",
               "logger": "com.example.Foo",
               "level": "debug"
@@ -454,7 +449,7 @@ public class TestPostLogs {
             {
               "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
               "message": "application started",
-              "timestamp": "04-05-2021 13:30:45",
+              "timestamp": "2024-12-05T14:30:45.000Z",
               "thread": "main",
               "logger": "com.example.Foo",
               "level": "debug",
