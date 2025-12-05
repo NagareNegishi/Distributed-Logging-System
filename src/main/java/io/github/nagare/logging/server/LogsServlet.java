@@ -28,7 +28,7 @@ public class LogsServlet extends HttpServlet{
     private static final ObjectMapper mapper = new ObjectMapper();
     // represent enum, avoiding conversion
     private static final List<String> LEVELS = List.of(
-            "all", "trace", "debug", "info", "warn", "error", "fatal", "off"
+            "ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OFF"
     );
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
@@ -52,7 +52,7 @@ public class LogsServlet extends HttpServlet{
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // Parse and verify limit/level parameters
         String limitParam = req.getParameter("limit");
-        String levelParam = req.getParameter("level");
+        String levelParam = req.getParameter("level").toUpperCase();
         String validationError = validateGetParameters(limitParam, levelParam); // Validate required fields
         if (validationError != null) {
             sendError(resp, 400, validationError);
@@ -90,8 +90,8 @@ public class LogsServlet extends HttpServlet{
      * @return true if the log should be included, false otherwise
      */
     private boolean filterLevel(String target, String levelParam){
-        if (levelParam.equals("all")) return true;
-        if (levelParam.equals("off")) return false;
+        if (levelParam.equals("ALL")) return true;
+        if (levelParam.equals("OFF")) return false;
         return LEVELS.indexOf(target) >= LEVELS.indexOf(levelParam);
     }
 
@@ -108,7 +108,7 @@ public class LogsServlet extends HttpServlet{
         String error = isValidLimit(limitParam);
         if (error != null) return error;
         if (!isValidLevel(levelParam)) {
-            return "Invalid log level. Must be one of: all, trace, debug, info, warn, error, fatal, off";
+            return "Invalid log level. Must be one of: ALL, TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF";
         }
         return null;
     }
@@ -161,12 +161,12 @@ public class LogsServlet extends HttpServlet{
             return;
         }
         // Prevent duplication
-        boolean duplicate = Persistency.DB.stream()
-                .anyMatch(existing -> logEvent.getId().equals(existing.getId()));
-        if (duplicate) {
-            sendError(resp, 409, "A log event with this id already exists");
-            return;
-        }
+//        boolean duplicate = Persistency.DB.stream()
+//                .anyMatch(existing -> logEvent.getId().equals(existing.getId()));
+//        if (duplicate) {
+//            sendError(resp, 409, "A log event with this id already exists");
+//            return;
+//        }
         Persistency.DB.add(logEvent);
         resp.setStatus(201);
     }
@@ -178,21 +178,21 @@ public class LogsServlet extends HttpServlet{
      * @return null if parameters are valid, corresponding error message otherwise
      */
     private String validateLogEvent(LogEvent logEvent) {
-        if (logEvent.getId() == null) return "Missing required field: id";
+//        if (logEvent.getId() == null) return "Missing required field: id";
         if (logEvent.getMessage() == null) return "Missing required field: message";
         if (logEvent.getTimestamp() == null) return "Missing required field: timestamp";
         if (logEvent.getThread() == null) return "Missing required field: thread";
         if (logEvent.getLogger() == null) return "Missing required field: logger";
         if (logEvent.getLevel() == null) return "Missing required field: level";
-        if (!isValidId(logEvent.getId())) return "Invalid UUID format for id";
-        if (!isValidTimestamp(logEvent.getTimestamp())) {
-            return "Invalid timestamp format. Expected: dd-MM-yyyy HH:mm:ss";
-        }
+//        if (!isValidId(logEvent.getId())) return "Invalid UUID format for id";
+//        if (!isValidTimestamp(logEvent.getTimestamp())) {
+//            return "Invalid timestamp format. Expected: dd-MM-yyyy HH:mm:ss";
+//        }
         String level = logEvent.getLevel();
         if (!isValidLevel(level)) {
-            return "Invalid log level. Must be one of: trace, debug, info, warn, error, fatal";
+            return "Invalid log level. Must be one of: TRACE, DEBUG, INFO, WARN, ERROR, FATAL";
         }
-        if (level.equals("all") || level.equals("off")) {
+        if (level.equals("ALL") || level.equals("OFF")) {
             return "Invalid log level. all and off are filter settings, not valid log levels";
         }
         return null;

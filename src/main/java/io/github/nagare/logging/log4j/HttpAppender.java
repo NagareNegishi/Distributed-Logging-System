@@ -17,30 +17,28 @@ import java.net.ConnectException;
  */
 public class HttpAppender extends AppenderSkeleton  {
 
-    private String url = "http://localhost:8080/logstore/logs"; // for development stage
-    private JsonLayout jsonLayout = new JsonLayout();
-    private HttpClient httpClient;
+    private static final String DEFAULT_URL = "http://localhost:8080/logstore/logs"; // for development stage
 
+    private String url = DEFAULT_URL;
+    private final JsonLayout jsonLayout = new JsonLayout();
+    private HttpClient httpClient;
     private long successCount = 0;
     private long failureCount = 0;
 
+    /**
+     * Constructor - initialize HTTP client
+     */
+    public HttpAppender() {
+        this.httpClient = HttpClient.newHttpClient();
+    }
+
     // Getter
-    public String getUrl() {
-        return url;
-    }
-
-    public long getSuccessCount() {
-        return successCount;
-    }
-
-    public long getFailureCount() {
-        return failureCount;
-    }
+    public String getUrl() { return url; }
+    public long getSuccessCount() { return successCount; }
+    public long getFailureCount() { return failureCount; }
 
     // Setter
-    public void setUrl(String url) {
-        this.url = url;
-    }
+    public void setUrl(String url) { this.url = url; }
 
 
     /**
@@ -49,15 +47,50 @@ public class HttpAppender extends AppenderSkeleton  {
      */
     @Override
     protected void append(LoggingEvent loggingEvent) {
-
+        // If Appender is closed, AppenderSkeleton's doAppend() prevent this method to be called
+        // However since I need to test append() directly, I need this extra check
+        if (closed) {
+            throw new IllegalStateException("Cannot append to a closed appender");
+        }
+        String json = jsonLayout.format(loggingEvent);
+        sendHttpPost(json);
     }
 
     /**
      * Sends JSON log data to the server via HTTP POST.
+     * Failed attempt do not throw RuntimeException, as Logging failure shouldn't stop the app
      * @param json LogEvent in json format
      */
     private void sendHttpPost(String json) {
-        // HTTP POST implementation
+        try {
+            var request = HttpRequest.newBuilder()
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .uri(URI.create(url))
+                    .headers("Content-Type", "application/json")
+                    .timeout(Duration.ofSeconds(15))
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Success check
+            int status = response.statusCode();
+            if (status == 200 || status == 201) {
+                successCount++;
+                return;
+            }
+            failureCount++;
+            System.err.println("HttpAppender: Server returned status " + status + " - " + response.body());
+
+        } catch (ConnectException e) {
+            failureCount++;
+            System.err.println("HttpAppender: Server not available at " + url);
+        } catch (InterruptedException e) {
+            failureCount++;
+            System.err.println("HttpAppender: Request interrupted");
+            Thread.currentThread().interrupt(); // Restore interrupt status
+        } catch (Exception e) {
+            failureCount++;
+            System.err.println("HttpAppender: " + e.getMessage());
+        }
     }
 
     /**
@@ -66,7 +99,9 @@ public class HttpAppender extends AppenderSkeleton  {
      */
     @Override
     public void close() {
-
+        if (closed) { return; }
+        httpClient = null;
+        closed = true; // AppenderSkeleton's doAppend() will check this
     }
 
     /**
@@ -77,6 +112,5 @@ public class HttpAppender extends AppenderSkeleton  {
     public boolean requiresLayout() {
         return false;
     }
-
 
 }

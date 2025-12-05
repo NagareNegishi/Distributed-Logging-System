@@ -68,7 +68,7 @@ public class LogEvent {
     }
 
     public void setLevel(String level) {
-        this.level = level;
+        this.level = level.toUpperCase();
     }
 
     public void setErrorDetails(String errorDetails) {
