@@ -20,14 +20,11 @@ import jakarta.servlet.annotation.WebListener;
 @WebListener
 public class DatabaseInitializer implements ServletContextListener{
 
-    // this will be 'the key' for EntityManagerFactory object
-    private static final String EMF_ATTRIBUTE = "EntityManagerFactory";
-
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         try {
             EntityManagerFactory emf = Persistence.createEntityManagerFactory("logDB");
-            sce.getServletContext().setAttribute(EMF_ATTRIBUTE, emf);
+            sce.getServletContext().setAttribute(ServletAttributes.EMF_ATTRIBUTE, emf);
         } catch (Exception e) {
             System.err.println("EntityManagerFactory initialization failed!");
             e.printStackTrace();
@@ -37,7 +34,8 @@ public class DatabaseInitializer implements ServletContextListener{
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        EntityManagerFactory emf = (EntityManagerFactory) sce.getServletContext().getAttribute(EMF_ATTRIBUTE);
+        EntityManagerFactory emf = (EntityManagerFactory) sce.getServletContext()
+                .getAttribute(ServletAttributes.EMF_ATTRIBUTE);
         if (emf != null && emf.isOpen()) {
             emf.close();
         }

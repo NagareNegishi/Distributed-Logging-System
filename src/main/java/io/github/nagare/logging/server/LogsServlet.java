@@ -41,9 +41,12 @@ public class LogsServlet extends HttpServlet{
      */
     @Override
     public void init() throws ServletException {
-        this.emf = (EntityManagerFactory) getServletContext().getAttribute(DatabaseInitializer.EMF_ATTRIBUTE);
-
+        this.emf = (EntityManagerFactory) getServletContext().getAttribute(ServletAttributes.EMF_ATTRIBUTE);
+        if (emf == null) {
+            throw new ServletException("EntityManagerFactory not found");
+        }
     }
+
 
     /**
      * By passing in the appropriate options, you can search for available logs in the system.
