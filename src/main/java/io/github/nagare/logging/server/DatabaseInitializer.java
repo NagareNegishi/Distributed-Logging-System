@@ -37,6 +37,9 @@ public class DatabaseInitializer implements ServletContextListener{
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        ServletContextListener.super.contextDestroyed(sce);
+        EntityManagerFactory emf = (EntityManagerFactory) sce.getServletContext().getAttribute(EMF_ATTRIBUTE);
+        if (emf != null && emf.isOpen()) {
+            emf.close();
+        }
     }
 }
