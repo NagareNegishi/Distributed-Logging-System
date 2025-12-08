@@ -1,9 +1,12 @@
 package io.github.nagare.logging.server;
 
+import jakarta.servlet.ServletConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletException;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,16 +28,22 @@ import java.io.IOException;
 public class LogsServlet extends HttpServlet{
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    // represent enum, avoiding conversion
-    private static final List<String> LEVELS = List.of(
-            "ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OFF"
-    );
+    private static final List<String> LEVELS = List.of("ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OFF");
+    private EntityManagerFactory emf;
 
 
     // Explicitly defined default constructor
     public LogsServlet() {
     }
 
+    /**
+     * Initialize servlet - get EntityManagerFactory from ServletContext
+     */
+    @Override
+    public void init() throws ServletException {
+        this.emf = (EntityManagerFactory) getServletContext().getAttribute(DatabaseInitializer.EMF_ATTRIBUTE);
+
+    }
 
     /**
      * By passing in the appropriate options, you can search for available logs in the system.
