@@ -2,6 +2,8 @@ package io.github.nagare.logging.server;
 
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -25,21 +27,38 @@ public class TestGetLogs {
     private LogsServlet servlet;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
+    private static EntityManagerFactory emf;
+    private LogEventRepository repo;
+
+    @BeforeAll
+    public static void setUpClass() {
+        // Create EMF once for all tests in this class
+        emf = TestDatabaseSetup.createTestEMF();
+    }
 
     @BeforeEach
     public void setUp() throws ServletException {
+        repo = new LogEventRepository(emf);
+
+        MockServletContext context = new MockServletContext();
+        context.setAttribute(ServletAttributes.EMF_ATTRIBUTE, emf);
+        MockServletConfig config = new MockServletConfig(context);
         servlet = new LogsServlet();
+        servlet.init(config);
+
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
 
         //Persistency.DB.clear();
-        EntityManagerFactory emf = TestDatabaseSetup.createTestEMF();
-        MockServletContext context = new MockServletContext();
-        context.setAttribute(ServletAttributes.EMF_ATTRIBUTE, emf);
-        MockServletConfig config = new MockServletConfig(context);
-        servlet.init(config);
 
         TestDatabaseSetup.clearDatabase(emf);
+    }
+
+    @AfterAll
+    public static void tearDownClass() {
+        if (emf != null && emf.isOpen()) {
+            emf.close();
+        }
     }
 
     @Test
@@ -57,7 +76,8 @@ public class TestGetLogs {
                 }
                 """;
         LogEvent logEvent = TestHelper.createLogEvent(jsonLog);
-        Persistency.DB.add(logEvent);
+        //Persistency.DB.add(logEvent);
+        repo.save(logEvent);
 
         request.setParameter("limit", "10");
         request.setParameter("level", "debug");
@@ -181,7 +201,7 @@ public class TestGetLogs {
     @Test
     public void testDoGet11() throws ServletException, IOException {
         // test multiple logs and order
-        TestHelper.populateDB(10);
+        TestHelper.populateDB(repo, 10);
         request.setParameter("limit", "5");
         request.setParameter("level", "all");
         servlet.doGet(request, response);
@@ -205,7 +225,7 @@ public class TestGetLogs {
     @Test
     public void testDoGet12() throws ServletException, IOException {
         // test multiple logs and level filter
-        TestHelper.populateDB(20);
+        TestHelper.populateDB(repo, 20);
         request.setParameter("limit", "20");
         request.setParameter("level", "warn");
         servlet.doGet(request, response);
@@ -228,7 +248,7 @@ public class TestGetLogs {
     @Test
     public void testDoGet13() throws ServletException, IOException {
         // test multiple logs and limit filter
-        TestHelper.populateDB(20);
+        TestHelper.populateDB(repo, 20);
         request.setParameter("limit", "5");
         request.setParameter("level", "all");
         servlet.doGet(request, response);
@@ -242,7 +262,7 @@ public class TestGetLogs {
     @Test
     public void testDoGet14() throws ServletException, IOException {
         // test level=off
-        TestHelper.populateDB(10);
+        TestHelper.populateDB(repo, 10);
         request.setParameter("limit", "10");
         request.setParameter("level", "off");
         servlet.doGet(request, response);
@@ -254,7 +274,7 @@ public class TestGetLogs {
     @Test
     public void testDoGet15() throws ServletException, IOException {
         // test level=all
-        TestHelper.populateDB(20);
+        TestHelper.populateDB(repo, 20);
         request.setParameter("limit", "20");
         request.setParameter("level", "all");
         servlet.doGet(request, response);
@@ -267,7 +287,7 @@ public class TestGetLogs {
     @Test
     public void testDoGet16() throws ServletException, IOException {
         // test level is not case-sensitive (auto convert to Upper case)
-        TestHelper.populateDB(3);
+        TestHelper.populateDB(repo, 3);
         request.setParameter("limit", "20");
         request.setParameter("level", "Debug");
         servlet.doGet(request, response);

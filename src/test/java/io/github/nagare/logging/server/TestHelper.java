@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.EntityManagerFactory;
+
 
 /**
  * Utility class providing helper methods for testing log servlets.
@@ -111,7 +113,7 @@ public class TestHelper {
      * @param count number of log events to create
      * @throws IOException if JSON parsing fails
      */
-    public static void populateDB(int count) throws IOException {
+    public static void populateDB(LogEventRepository repo, int count) throws IOException {
         for (int i = 0; i < count; i++) {
             String json = createLogJson(
                     generateId(), // Chance of duplication is astronomically small
@@ -120,7 +122,9 @@ public class TestHelper {
                     i
                     );
             LogEvent logEvent = createLogEvent(json);
-            Persistency.DB.add(logEvent);
+
+            //Persistency.DB.add(logEvent);
+            repo.save(logEvent);
         }
     }
 
@@ -131,7 +135,7 @@ public class TestHelper {
      * @param logger base logger name (will be appended with index)
      * @throws IOException if JSON parsing fails
      */
-    public static void populateWithLogger(int count, String logger) throws IOException {
+    public static void populateWithLogger(LogEventRepository repo, int count, String logger) throws IOException {
         for (int i = 0; i < count; i++) {
             String json = createLogJsonWithLogger(
                     generateId(), // Chance of duplication is astronomically small
@@ -141,7 +145,9 @@ public class TestHelper {
                     i
             );
             LogEvent logEvent = createLogEvent(json);
-            Persistency.DB.add(logEvent);
+
+            //Persistency.DB.add(logEvent);
+            repo.save(logEvent);
         }
     }
 
@@ -152,7 +158,7 @@ public class TestHelper {
      * @param logger logger name to use for all log events
      * @throws IOException if JSON parsing fails
      */
-    public static void populateWithSameLogger(int count, String logger) throws IOException {
+    public static void populateWithSameLogger(LogEventRepository repo, int count, String logger) throws IOException {
         for (int i = 0; i < count; i++) {
             String json = createLogJsonWithLogger(
                     generateId(), // Chance of duplication is astronomically small
@@ -162,7 +168,9 @@ public class TestHelper {
                     i
             );
             LogEvent logEvent = createLogEvent(json);
-            Persistency.DB.add(logEvent);
+
+            //Persistency.DB.add(logEvent);
+            repo.save(logEvent);
         }
     }
 
