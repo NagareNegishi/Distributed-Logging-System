@@ -94,7 +94,41 @@ public class LogEventRepository {
     }
 
     // Delete need to delete
+    public void deleteAll() {
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("DELETE FROM LogEvent").executeUpdate();
+            tx.commit();
+        }
+        catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+        }
+        finally {
+            em.close();
+        }
+    }
 
+    public void deleteById(String id) {
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("DELETE FROM LogEvent WHERE id = :id")
+                    .setParameter("id", id)
+                    .executeUpdate();
+            tx.commit();
+        }
+        catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+        }
+        finally {
+            em.close();
+        }
+    }
 
 
     // all log
