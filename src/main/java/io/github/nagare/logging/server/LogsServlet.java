@@ -172,7 +172,8 @@ public class LogsServlet extends HttpServlet{
             sendError(resp, 409, "A log event with this id already exists");
             return;
         }
-        Persistency.DB.add(logEvent);
+        repository.save(logEvent);
+//        Persistency.DB.add(logEvent);
         resp.setStatus(201);
     }
 

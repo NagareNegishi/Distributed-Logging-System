@@ -1,11 +1,9 @@
 package io.github.nagare.logging.server;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -26,6 +24,7 @@ public class LogEventRepository {
         this.emf = emf;
     }
 
+    // GET
 
     /**
      * Get logs filtered by level and limited by count, ordered by timestamp descending
@@ -53,6 +52,28 @@ public class LogEventRepository {
         if (levelParam.equals("ALL")) return true;
         if (levelParam.equals("OFF")) return false;
         return LogsServlet.LEVELS.indexOf(target) >= LogsServlet.LEVELS.indexOf(levelParam);
+    }
+
+
+    /**
+     *
+     * @param logEvent
+     */
+    public void save(LogEvent logEvent){
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(logEvent);
+            tx.commit();
+        }
+        catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+        }
+        finally {
+            em.close();
+        }
     }
 
 
