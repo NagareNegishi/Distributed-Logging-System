@@ -1,19 +1,16 @@
 package io.github.nagare.logging.server;
 
-import jakarta.servlet.ServletConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletException;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.Comparator;
 import java.time.Instant;
 
 import java.time.format.DateTimeParseException;
@@ -71,15 +68,9 @@ public class LogsServlet extends HttpServlet{
             sendError(resp, 400, validationError);
             return;
         }
-        // Filter and sort Persistency.DB
+        // Filter and sort LogEvents
         List<LogEvent> logList = repository.filterLogs(limitParam, levelParam);
 
-//                Persistency.DB.stream()
-//                .filter(log -> filterLevel(log.getLevel(), levelParam))
-//                // the latest logs first
-//                .sorted(Comparator.comparing(this::parseTimestamp).reversed())
-//                .limit(Integer.parseInt(limitParam))
-//                .toList();
         // Convert to JSON array
         String jsonArray = mapper.writeValueAsString(logList);
         resp.setContentType("application/json");
@@ -164,16 +155,11 @@ public class LogsServlet extends HttpServlet{
         }
         // Prevent duplication
         boolean duplicate = repository.is_exist(logEvent.getId());
-
-//                Persistency.DB.stream()
-//                .anyMatch(existing -> logEvent.getId().equals(existing.getId()));
-
         if (duplicate) {
             sendError(resp, 409, "A log event with this id already exists");
             return;
         }
         repository.save(logEvent);
-//        Persistency.DB.add(logEvent);
         resp.setStatus(201);
     }
 
@@ -277,8 +263,8 @@ public class LogsServlet extends HttpServlet{
      */
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Clear Persistency.DB
-        Persistency.DB.clear();
+        // Clear database
+        repository.deleteAll();
         resp.setStatus(200);
     }
 }
