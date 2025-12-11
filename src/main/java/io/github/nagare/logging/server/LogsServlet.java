@@ -30,6 +30,7 @@ public class LogsServlet extends HttpServlet{
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final List<String> LEVELS = List.of("ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OFF");
     private EntityManagerFactory emf;
+    private LogEventRepository repository;
 
 
     // Explicitly defined default constructor
@@ -45,6 +46,7 @@ public class LogsServlet extends HttpServlet{
         if (emf == null) {
             throw new ServletException("EntityManagerFactory not found");
         }
+        this.repository = new LogEventRepository(emf);
     }
 
 
