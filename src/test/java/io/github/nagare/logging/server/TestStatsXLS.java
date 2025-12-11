@@ -7,7 +7,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,12 +56,6 @@ public class TestStatsXLS {
         TestDatabaseSetup.clearDatabase(emf);
     }
 
-    @AfterAll
-    public static void tearDownClass() {
-        if (emf != null && emf.isOpen()) {
-            emf.close();
-        }
-    }
 
     @Test
     public void testDoGet1() throws ServletException, IOException {
