@@ -1,15 +1,20 @@
 package io.github.nagare.logging.server;
 
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockServletConfig;
+import org.springframework.mock.web.MockServletContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,22 +27,47 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TestStatsXLS {
 
-    private StatsExcelServlet servlet;
+    private LogsServlet servlet;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
+    private static EntityManagerFactory emf;
+    private LogEventRepository repo;
+
+    @BeforeAll
+    public static void setUpClass() {
+        // Create EMF once for all tests in this class
+        emf = TestDatabaseSetup.createTestEMF();
+    }
 
     @BeforeEach
-    public void setUp() {
-        servlet = new StatsExcelServlet();
+    public void setUp() throws ServletException {
+        repo = new LogEventRepository(emf);
+
+        MockServletContext context = new MockServletContext();
+        context.setAttribute(ServletAttributes.EMF_ATTRIBUTE, emf);
+        MockServletConfig config = new MockServletConfig(context);
+        servlet = new LogsServlet();
+        servlet.init(config);
+
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
-        Persistency.DB.clear();
+
+        //Persistency.DB.clear();
+
+        TestDatabaseSetup.clearDatabase(emf);
+    }
+
+    @AfterAll
+    public static void tearDownClass() {
+        if (emf != null && emf.isOpen()) {
+            emf.close();
+        }
     }
 
     @Test
     public void testDoGet1() throws ServletException, IOException {
         // test ContentType, Status
-        TestHelper.populateDB(5);
+        TestHelper.populateDB(repo, 5);
         servlet.doGet(request, response);
         assertEquals(
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -49,7 +79,7 @@ public class TestStatsXLS {
     @Test
     public void testDoGet2() throws ServletException, IOException {
         // test XLS structure
-        TestHelper.populateWithLogger(5, "test.Logger");
+        TestHelper.populateWithLogger(repo, 5, "test.Logger");
         servlet.doGet(request, response);
         byte[] xlsContent = response.getContentAsByteArray(); // binary content
         // create XSSFWorkbook for parsing
@@ -87,10 +117,10 @@ public class TestStatsXLS {
     @Test
     public void testDoGet3() throws ServletException, IOException {
         // test data correctness
-        TestHelper.populateWithSameLogger(6, "test.Logger1"); // all 1
-        TestHelper.populateWithSameLogger(5, "test.Logger1"); // +1 except fatal
-        TestHelper.populateWithSameLogger(18, "test.Logger2"); // all 3
-        TestHelper.populateWithSameLogger(2, "test.Logger2"); // +1 trace, debug
+        TestHelper.populateWithSameLogger(repo, 6, "test.Logger1"); // all 1
+        TestHelper.populateWithSameLogger(repo, 5, "test.Logger1"); // +1 except fatal
+        TestHelper.populateWithSameLogger(repo, 18, "test.Logger2"); // all 3
+        TestHelper.populateWithSameLogger(repo, 2, "test.Logger2"); // +1 trace, debug
         servlet.doGet(request, response);
         byte[] xlsContent = response.getContentAsByteArray(); // binary content
         InputStream is = new ByteArrayInputStream(xlsContent);
