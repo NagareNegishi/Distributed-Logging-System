@@ -68,7 +68,7 @@ public class StatsCSVServlet extends HttpServlet {
         StringBuilder csv = new StringBuilder();
         // header row
         csv.append("logger");
-        List<String> levels = helper.getLevels();
+        List<String> levels = StatsHelper.getLevels();
         for (String level: levels) {
             csv.append("\t").append(level);
         }

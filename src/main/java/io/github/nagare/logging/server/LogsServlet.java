@@ -1,20 +1,19 @@
 package io.github.nagare.logging.server;
 
+import java.io.IOException;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.UUID;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.ServletException;
-import jakarta.persistence.EntityManagerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.util.List;
-import java.util.UUID;
-import java.time.Instant;
-
-import java.time.format.DateTimeParseException;
-import java.io.IOException;
 
 
 /**
@@ -76,16 +75,6 @@ public class LogsServlet extends HttpServlet{
         resp.setContentType("application/json");
         resp.setStatus(200);
         resp.getWriter().write(jsonArray);
-    }
-
-
-    /**
-     * Parses the timestamp string from a log event into a Instant object.
-     * @param log the LogEvent containing the timestamp to parse
-     * @return the parsed Instant
-     */
-    private Instant parseTimestamp(LogEvent log) {
-        return Instant.parse(log.getTimestamp());
     }
 
 

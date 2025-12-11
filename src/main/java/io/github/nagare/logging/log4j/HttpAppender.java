@@ -1,22 +1,22 @@
 package io.github.nagare.logging.log4j;
 
-import org.apache.log4j.spi.LoggingEvent;
-import org.apache.log4j.AppenderSkeleton;
-
+import java.lang.management.ManagementFactory;
+import java.net.ConnectException;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.URI;
 import java.time.Duration;
-import java.net.ConnectException;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import java.lang.management.ManagementFactory;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
-import javax.management.NotCompliantMBeanException;
+import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.spi.LoggingEvent;
 
 
 /**
@@ -159,7 +159,7 @@ public class HttpAppender extends AppenderSkeleton implements HttpAppenderMBean 
 
 
     /**
-     * Unregisters this MemAppender as an MBean with the platform MBeanServer
+     * Unregistered this MemAppender as an MBean with the platform MBeanServer
      */
     private void unregisterMBean() {
         if (this.name == null) {

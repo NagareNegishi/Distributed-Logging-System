@@ -1,10 +1,10 @@
 package io.github.nagare.logging.server;
 
+import java.util.List;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
-
-import java.util.List;
 
 /**
  * Class handle Basic CRUD operations for LogServlet
@@ -24,10 +24,12 @@ public class LogEventRepository {
         this.emf = emf;
     }
 
-    // GET
 
     /**
      * Get logs filtered by level and limited by count, ordered by timestamp descending
+     * @param limit maximum number of logs to return
+     * @param level minimum log level threshold for filtering
+     * @return List of LogEvent objects that match the criteria
      */
     public List<LogEvent> filterLogs(String limit, String level){
         try (EntityManager em = emf.createEntityManager()) {
@@ -41,6 +43,7 @@ public class LogEventRepository {
                     .toList();
         }
     }
+
 
     /**
      * Filters log events based on the minimum log level threshold.
@@ -56,8 +59,8 @@ public class LogEventRepository {
 
 
     /**
-     *
-     * @param logEvent
+     * Save log event to database
+     * @param logEvent log event to be saved
      */
     public void save(LogEvent logEvent){
         EntityManager em = emf.createEntityManager();
@@ -78,9 +81,9 @@ public class LogEventRepository {
 
 
     /**
-     *
-     * @param id
-     * @return
+     * Check if log event with given ID exists
+     * @param id log event ID
+     * @return true if exists, false otherwise
      */
     public boolean is_exist(String id) {
         try (EntityManager em = emf.createEntityManager()) {
@@ -93,7 +96,10 @@ public class LogEventRepository {
         }
     }
 
-    // Delete need to delete
+
+    /**
+     * Delete all log events from database
+     */
     public void deleteAll() {
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -111,6 +117,10 @@ public class LogEventRepository {
         }
     }
 
+    /**
+     * Delete log event by ID
+     * @param id log event ID
+     */
     public void deleteById(String id) {
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -131,13 +141,22 @@ public class LogEventRepository {
     }
 
 
-    // all log
+    /**
+     * Get all logs from database
+     * @return List of all LogEvent objects
+     */
     public List<LogEvent> getAllLogs(){
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery("FROM LogEvent", LogEvent.class).getResultList();
         }
     }
 
+    
+    /**
+     * Get log event by ID
+     * @param id log event ID
+     * @return LogEvent object if found, null otherwise
+     */
     public LogEvent getById(String id){
         try (EntityManager em = emf.createEntityManager()) {
             return em.find(LogEvent.class, id);

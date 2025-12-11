@@ -1,17 +1,14 @@
 package io.github.nagare.logging.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import jakarta.persistence.EntityManagerFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 /**

@@ -1,16 +1,18 @@
 package io.github.nagare.logging.server;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.ServletException;
-
-import org.apache.poi.xssf.usermodel.*;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 
 /**
@@ -82,7 +84,7 @@ public class StatsExcelServlet extends HttpServlet {
         // header row
         XSSFRow header = sheet.createRow(0);
         header.createCell(0).setCellValue("logger");
-        List<String> levels = helper.getLevels();
+        List<String> levels = StatsHelper.getLevels();
         for (int i = 0; i < levels.size(); i++) {
             header.createCell(i + 1).setCellValue(levels.get(i));
         }

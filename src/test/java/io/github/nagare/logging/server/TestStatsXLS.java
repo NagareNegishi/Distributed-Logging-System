@@ -1,7 +1,14 @@
 package io.github.nagare.logging.server;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.servlet.ServletException;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -15,14 +22,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockServletConfig;
 import org.springframework.mock.web.MockServletContext;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.servlet.ServletException;
 
 public class TestStatsXLS {
 
@@ -113,35 +114,36 @@ public class TestStatsXLS {
         servlet.doGet(request, response);
         byte[] xlsContent = response.getContentAsByteArray(); // binary content
         InputStream is = new ByteArrayInputStream(xlsContent);
-        XSSFWorkbook workbook = new XSSFWorkbook(is);
-        XSSFSheet sheet = workbook.getSheet("stats");
-        Map<String, Row> loggerRows = new HashMap<>();
-        for (Row row : sheet) {
-            if (row.getRowNum() == 0) continue; // skip header, it already verified
-            loggerRows.put(row.getCell(0).getStringCellValue(), row);
+        try (XSSFWorkbook workbook = new XSSFWorkbook(is)) {
+            XSSFSheet sheet = workbook.getSheet("stats");
+            Map<String, Row> loggerRows = new HashMap<>();
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0) continue; // skip header, it already verified
+                loggerRows.put(row.getCell(0).getStringCellValue(), row);
+            }
+            // Verify Logger1 counts
+            assertTrue(loggerRows.containsKey("test.Logger1"));
+            Row logger1Row = loggerRows.get("test.Logger1");
+            assertEquals(0, logger1Row.getCell(1).getNumericCellValue()); // ALL
+            assertEquals(2, logger1Row.getCell(2).getNumericCellValue()); // TRACE
+            assertEquals(2, logger1Row.getCell(3).getNumericCellValue()); // DEBUG
+            assertEquals(2, logger1Row.getCell(4).getNumericCellValue()); // INFO
+            assertEquals(2, logger1Row.getCell(5).getNumericCellValue()); // WARN
+            assertEquals(2, logger1Row.getCell(6).getNumericCellValue()); // ERROR
+            assertEquals(1, logger1Row.getCell(7).getNumericCellValue()); // FATAL
+            assertEquals(0, logger1Row.getCell(8).getNumericCellValue()); // OFF
+            // Verify Logger2 counts
+            assertTrue(loggerRows.containsKey("test.Logger2"));
+            Row logger2Row = loggerRows.get("test.Logger2");
+            assertEquals(0, logger2Row.getCell(1).getNumericCellValue()); // ALL
+            assertEquals(4, logger2Row.getCell(2).getNumericCellValue()); // TRACE
+            assertEquals(4, logger2Row.getCell(3).getNumericCellValue()); // DEBUG
+            assertEquals(3, logger2Row.getCell(4).getNumericCellValue()); // INFO
+            assertEquals(3, logger2Row.getCell(5).getNumericCellValue()); // WARN
+            assertEquals(3, logger2Row.getCell(6).getNumericCellValue()); // ERROR
+            assertEquals(3, logger2Row.getCell(7).getNumericCellValue()); // FATAL
+            assertEquals(0, logger2Row.getCell(8).getNumericCellValue()); // OFF
         }
-        // Verify Logger1 counts
-        assertTrue(loggerRows.containsKey("test.Logger1"));
-        Row logger1Row = loggerRows.get("test.Logger1");
-        assertEquals(0, logger1Row.getCell(1).getNumericCellValue()); // ALL
-        assertEquals(2, logger1Row.getCell(2).getNumericCellValue()); // TRACE
-        assertEquals(2, logger1Row.getCell(3).getNumericCellValue()); // DEBUG
-        assertEquals(2, logger1Row.getCell(4).getNumericCellValue()); // INFO
-        assertEquals(2, logger1Row.getCell(5).getNumericCellValue()); // WARN
-        assertEquals(2, logger1Row.getCell(6).getNumericCellValue()); // ERROR
-        assertEquals(1, logger1Row.getCell(7).getNumericCellValue()); // FATAL
-        assertEquals(0, logger1Row.getCell(8).getNumericCellValue()); // OFF
-        // Verify Logger2 counts
-        assertTrue(loggerRows.containsKey("test.Logger2"));
-        Row logger2Row = loggerRows.get("test.Logger2");
-        assertEquals(0, logger2Row.getCell(1).getNumericCellValue()); // ALL
-        assertEquals(4, logger2Row.getCell(2).getNumericCellValue()); // TRACE
-        assertEquals(4, logger2Row.getCell(3).getNumericCellValue()); // DEBUG
-        assertEquals(3, logger2Row.getCell(4).getNumericCellValue()); // INFO
-        assertEquals(3, logger2Row.getCell(5).getNumericCellValue()); // WARN
-        assertEquals(3, logger2Row.getCell(6).getNumericCellValue()); // ERROR
-        assertEquals(3, logger2Row.getCell(7).getNumericCellValue()); // FATAL
-        assertEquals(0, logger2Row.getCell(8).getNumericCellValue()); // OFF
     }
 
     @Test
@@ -150,11 +152,12 @@ public class TestStatsXLS {
         servlet.doGet(request, response);
         byte[] xlsContent = response.getContentAsByteArray(); // binary content
         InputStream is = new ByteArrayInputStream(xlsContent);
-        XSSFWorkbook workbook = new XSSFWorkbook(is);
-        XSSFSheet sheet = workbook.getSheet("stats");
-        assertEquals(1, sheet.getPhysicalNumberOfRows());
-        XSSFRow header = sheet.getRow(0);
-        assertEquals(9, header.getPhysicalNumberOfCells());
+        try (XSSFWorkbook workbook = new XSSFWorkbook(is)) {
+            XSSFSheet sheet = workbook.getSheet("stats");
+            assertEquals(1, sheet.getPhysicalNumberOfRows());
+            XSSFRow header = sheet.getRow(0);
+            assertEquals(9, header.getPhysicalNumberOfCells());
+        }
     }
 
 }

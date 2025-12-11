@@ -1,14 +1,14 @@
 package io.github.nagare.logging.server;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.ServletException;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 
 /**
@@ -72,7 +72,7 @@ public class StatsHTMLServlet extends HttpServlet  {
 
         // table start
         html.append("<table>");
-        List<String> levels = helper.getLevels();
+        List<String> levels = StatsHelper.getLevels();
 
         // header row
         html.append("<tr>");
