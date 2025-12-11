@@ -26,25 +26,21 @@ public class LogEventRepository {
         this.emf = emf;
     }
 
-    /**
-     * LogServlet has Get, Post, Delete so at least need those 3 method
-     */
 
     /**
      * Get logs filtered by level and limited by count, ordered by timestamp descending
      */
     public List<LogEvent> filterLogs(String limit, String level){
-        EntityManager em = emf.createEntityManager();
+        try (EntityManager em = emf.createEntityManager()) {
+            // Get ALL logs, ordered by timestamp
+            List<LogEvent> allLogs = em.createQuery("FROM LogEvent ORDER BY timestamp DESC", LogEvent.class)
+                    .getResultList();
 
-        // Get ALL logs, ordered by timestamp
-        List<LogEvent> allLogs = em.createQuery("FROM LogEvent ORDER BY timestamp DESC", LogEvent.class)
-                .getResultList();
-        em.close();
-
-        return allLogs.stream()
-            .filter(log -> filterLevel(log.getLevel(), level))
-            .limit(Integer.parseInt(limit))
-            .toList();
+            return allLogs.stream()
+                    .filter(log -> filterLevel(log.getLevel(), level))
+                    .limit(Integer.parseInt(limit))
+                    .toList();
+        }
     }
 
     /**
@@ -60,9 +56,22 @@ public class LogEventRepository {
     }
 
 
+    /**
+     *
+     * @param id
+     * @return
+     */
+    public boolean is_exist(String id) {
+        try (EntityManager em = emf.createEntityManager()) {
+            // JPQL requires alias for COUNT
+            Long count = em.createQuery("SELECT COUNT(L) FROM LogEvent L WHERE L.id = :id", Long.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
 
+            return count != null && count > 0;
+        }
+    }
 
-    // Post need to save
     // Delete need to delete
 
 

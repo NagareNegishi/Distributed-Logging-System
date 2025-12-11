@@ -163,8 +163,11 @@ public class LogsServlet extends HttpServlet{
             return;
         }
         // Prevent duplication
-        boolean duplicate = Persistency.DB.stream()
-                .anyMatch(existing -> logEvent.getId().equals(existing.getId()));
+        boolean duplicate = repository.is_exist(logEvent.getId());
+
+//                Persistency.DB.stream()
+//                .anyMatch(existing -> logEvent.getId().equals(existing.getId()));
+
         if (duplicate) {
             sendError(resp, 409, "A log event with this id already exists");
             return;
