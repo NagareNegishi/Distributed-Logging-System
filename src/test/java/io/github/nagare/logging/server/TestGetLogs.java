@@ -48,8 +48,6 @@ public class TestGetLogs {
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
 
-        //Persistency.DB.clear();
-
         TestDatabaseSetup.clearDatabase(emf);
     }
 
@@ -228,7 +226,8 @@ public class TestGetLogs {
         LogEvent[] resultEvents = TestHelper.createLogEventArray(result);
 
         List<String> expectedLevels = Arrays.asList("WARN", "ERROR", "FATAL"); // "off" shouldn't exist
-        List<LogEvent> filteredDB = Persistency.DB.stream()
+        List<LogEvent> filteredDB = repo.getAllLogs()
+                .stream()
                 .filter(log -> expectedLevels.contains(log.getLevel()))
                 .limit(20)
                 .toList();

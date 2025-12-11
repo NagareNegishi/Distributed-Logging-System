@@ -43,8 +43,6 @@ public class TestPostLogs {
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
 
-        //Persistency.DB.clear();
-
         TestDatabaseSetup.clearDatabase(emf);
     }
 
