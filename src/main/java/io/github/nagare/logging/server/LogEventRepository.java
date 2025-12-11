@@ -100,8 +100,13 @@ public class LogEventRepository {
     // all log
     public List<LogEvent> getAllLogs(){
         try (EntityManager em = emf.createEntityManager()) {
-            // Get ALL logs, ordered by timestamp
             return em.createQuery("FROM LogEvent", LogEvent.class).getResultList();
+        }
+    }
+
+    public LogEvent getById(String id){
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.find(LogEvent.class, id);
         }
     }
 

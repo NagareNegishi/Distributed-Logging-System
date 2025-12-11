@@ -84,9 +84,8 @@ public class TestPostLogs {
         request.setContent(jsonLog.getBytes());
         servlet.doPost(request, response);
         assertEquals(201, response.getStatus());
-        assertEquals(1, Persistency.DB.size());
         LogEvent logEvent = TestHelper.createLogEvent(jsonLog);
-        LogEvent resultEvent = Persistency.DB.get(0);
+        LogEvent resultEvent = repo.getById("d290f1ee-6c54-4b01-90e6-d701748f0851");
         assertEquals(logEvent.getId(), resultEvent.getId());
         assertEquals(logEvent.getMessage(), resultEvent.getMessage());
         assertEquals(logEvent.getTimestamp(), resultEvent.getTimestamp());
@@ -237,7 +236,8 @@ public class TestPostLogs {
         request.setContent(jsonLog.getBytes());
         servlet.doPost(request, response);
         assertEquals(201, response.getStatus());
-        assertEquals(1, Persistency.DB.size());
+        assertEquals("d290f1ee-6c54-4b01-90e6-d701748f0851",
+                repo.getById("d290f1ee-6c54-4b01-90e6-d701748f0851").getId());
     }
 
     @Test
@@ -460,7 +460,8 @@ public class TestPostLogs {
         request.setContent(jsonLog.getBytes());
         servlet.doPost(request, response);
         assertEquals(201, response.getStatus());
-        assertEquals(1, Persistency.DB.size());
+        assertEquals("d290f1ee-6c54-4b01-90e6-d701748f0851",
+                repo.getById("d290f1ee-6c54-4b01-90e6-d701748f0851").getId());
     }
 
     @Test
@@ -483,7 +484,8 @@ public class TestPostLogs {
         request.setContent(jsonLog.getBytes());
         servlet.doPost(request, response);
         assertEquals(201, response.getStatus());
-        assertEquals(1, Persistency.DB.size());
+        assertEquals("d290f1ee-6c54-4b01-90e6-d701748f0851",
+                repo.getById("d290f1ee-6c54-4b01-90e6-d701748f0851").getId());
 
         // Second POST with same ID - should fail with 409
         response = new MockHttpServletResponse();
@@ -506,7 +508,6 @@ public class TestPostLogs {
         request.setContent(jsonLog.getBytes());
         servlet.doPost(request, response);
         assertEquals(201, response.getStatus());
-        assertEquals(1, Persistency.DB.size());
     }
 
 }
