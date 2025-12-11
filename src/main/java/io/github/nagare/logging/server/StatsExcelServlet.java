@@ -1,5 +1,6 @@
 package io.github.nagare.logging.server;
 
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,8 +30,24 @@ import java.util.Map;
  */
 public class StatsExcelServlet extends HttpServlet {
 
+    private StatsHelper helper;
+
     // Explicitly defined default constructor
     public StatsExcelServlet() {
+    }
+
+
+    /**
+     * Initialize servlet - get EntityManagerFactory from ServletContext
+     */
+    @Override
+    public void init() throws ServletException {
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute(ServletAttributes.EMF_ATTRIBUTE);
+        if (emf == null) {
+            throw new ServletException("EntityManagerFactory not found");
+        }
+        LogEventRepository repository = new LogEventRepository(emf);
+        this.helper = new StatsHelper(repository);
     }
 
 
@@ -44,7 +61,7 @@ public class StatsExcelServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        try (XSSFWorkbook workbook = generateExcel(StatsHelper.getLogStatistics())) {
+        try (XSSFWorkbook workbook = generateExcel(helper.getLogStatistics())) {
             resp.setStatus(200);
             workbook.write(resp.getOutputStream());
         }
@@ -65,7 +82,7 @@ public class StatsExcelServlet extends HttpServlet {
         // header row
         XSSFRow header = sheet.createRow(0);
         header.createCell(0).setCellValue("logger");
-        List<String> levels = StatsHelper.getLevels();
+        List<String> levels = helper.getLevels();
         for (int i = 0; i < levels.size(); i++) {
             header.createCell(i + 1).setCellValue(levels.get(i));
         }

@@ -12,7 +12,16 @@ import java.util.stream.Collectors;
  */
 public class StatsHelper {
 
+    private final LogEventRepository repository;
     private static final List<String> LEVELS = List.of("ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OFF");
+
+    /**
+     *
+     * @param repo
+     */
+    public StatsHelper(LogEventRepository repo){
+        this.repository = repo;
+    }
 
 
     /**
@@ -31,9 +40,10 @@ public class StatsHelper {
      * and fills in missing levels with zero counts.
      * @return nested map: logger → (level → count)
      */
-    public static Map<String, Map<String, Long>> getLogStatistics() {
+    public Map<String, Map<String, Long>> getLogStatistics() {
         // logger, <level,count>
-        Map<String, Map<String, Long>> stats =  Persistency.DB.stream()
+        Map<String, Map<String, Long>> stats =  repository.getAllLogs()
+                .stream()
                 .collect(Collectors.groupingBy(
                         LogEvent::getLogger,
                         Collectors.groupingBy(

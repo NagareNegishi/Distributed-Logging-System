@@ -1,5 +1,6 @@
 package io.github.nagare.logging.server;
 
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,8 +21,24 @@ import java.util.Map;
  */
 public class StatsHTMLServlet extends HttpServlet  {
 
+    private StatsHelper helper;
+
     // Explicitly defined default constructor
     public StatsHTMLServlet() {
+    }
+
+
+    /**
+     * Initialize servlet - get EntityManagerFactory from ServletContext
+     */
+    @Override
+    public void init() throws ServletException {
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute(ServletAttributes.EMF_ATTRIBUTE);
+        if (emf == null) {
+            throw new ServletException("EntityManagerFactory not found");
+        }
+        LogEventRepository repository = new LogEventRepository(emf);
+        this.helper = new StatsHelper(repository);
     }
 
 
@@ -35,7 +52,7 @@ public class StatsHTMLServlet extends HttpServlet  {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html");
-        String htmlData = generateHTML(StatsHelper.getLogStatistics());
+        String htmlData = generateHTML(helper.getLogStatistics());
         resp.setStatus(200);
         resp.getWriter().write(htmlData);
     }
@@ -55,7 +72,7 @@ public class StatsHTMLServlet extends HttpServlet  {
 
         // table start
         html.append("<table>");
-        List<String> levels = StatsHelper.getLevels();
+        List<String> levels = helper.getLevels();
 
         // header row
         html.append("<tr>");

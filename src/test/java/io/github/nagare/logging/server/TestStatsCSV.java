@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TestStatsCSV {
 
-    private LogsServlet servlet;
+    private StatsCSVServlet servlet;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
     private static EntityManagerFactory emf;
@@ -35,18 +35,14 @@ public class TestStatsCSV {
     @BeforeEach
     public void setUp() throws ServletException {
         repo = new LogEventRepository(emf);
-
         MockServletContext context = new MockServletContext();
         context.setAttribute(ServletAttributes.EMF_ATTRIBUTE, emf);
         MockServletConfig config = new MockServletConfig(context);
-        servlet = new LogsServlet();
+        servlet = new StatsCSVServlet();
         servlet.init(config);
 
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
-
-        //Persistency.DB.clear();
-
         TestDatabaseSetup.clearDatabase(emf);
     }
 
