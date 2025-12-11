@@ -1,10 +1,13 @@
 package io.github.nagare.logging.server;
 
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockServletConfig;
+import org.springframework.mock.web.MockServletContext;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -24,11 +27,19 @@ public class TestGetLogs {
     private MockHttpServletResponse response;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws ServletException {
         servlet = new LogsServlet();
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
-        Persistency.DB.clear();
+
+        //Persistency.DB.clear();
+        EntityManagerFactory emf = TestDatabaseSetup.createTestEMF();
+        MockServletContext context = new MockServletContext();
+        context.setAttribute(ServletAttributes.EMF_ATTRIBUTE, emf);
+        MockServletConfig config = new MockServletConfig(context);
+        servlet.init(config);
+
+        TestDatabaseSetup.clearDatabase(emf);
     }
 
     @Test
