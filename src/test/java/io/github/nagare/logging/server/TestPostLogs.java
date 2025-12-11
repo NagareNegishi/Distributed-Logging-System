@@ -310,9 +310,22 @@ public class TestPostLogs {
     @Test
     public void testDoPost14() throws ServletException, IOException {
         // test id already exists
-        TestHelper.populateDB(repo, 5);
-        String existId = Persistency.DB.get(1).getId();
-        String jsonLog = TestHelper.createLogJson(existId, "message", "debug", 0);
+        String jsonLog = """
+                {
+                  "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+                  "message": "application started",
+                  "timestamp": "2024-12-05T14:30:45.000Z",
+                  "thread": "main",
+                  "logger": "com.example.Foo",
+                  "level": "debug",
+                  "errorDetails": "string"
+                }
+                """;
+        request.setContentType("application/json");
+        request.setContent(jsonLog.getBytes());
+        servlet.doPost(request, response);
+        assertEquals(201, response.getStatus());
+        jsonLog = TestHelper.createLogJson("d290f1ee-6c54-4b01-90e6-d701748f0851", "message", "debug", 0);
         request.setContentType("application/json");
         request.setContent(jsonLog.getBytes());
         servlet.doPost(request, response);
