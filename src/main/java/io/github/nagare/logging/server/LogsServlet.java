@@ -23,7 +23,6 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public class LogsServlet extends HttpServlet{
 
-    private EntityManagerFactory emf;
     private LogEventRepository repository;
     private static final ObjectMapper mapper = new ObjectMapper();
     public static final List<String> LEVELS = List.of("ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OFF");
@@ -33,12 +32,13 @@ public class LogsServlet extends HttpServlet{
     public LogsServlet() {
     }
 
+
     /**
      * Initialize servlet - get EntityManagerFactory from ServletContext
      */
     @Override
     public void init() throws ServletException {
-        this.emf = (EntityManagerFactory) getServletContext().getAttribute(ServletAttributes.EMF_ATTRIBUTE);
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute(ServletAttributes.EMF_ATTRIBUTE);
         if (emf == null) {
             throw new ServletException("EntityManagerFactory not found");
         }
