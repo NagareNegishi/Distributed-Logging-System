@@ -27,10 +27,10 @@ import java.io.IOException;
  */
 public class LogsServlet extends HttpServlet{
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-    private static final List<String> LEVELS = List.of("ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OFF");
     private EntityManagerFactory emf;
     private LogEventRepository repository;
+    private static final ObjectMapper mapper = new ObjectMapper();
+    public static final List<String> LEVELS = List.of("ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OFF");
 
 
     // Explicitly defined default constructor
@@ -72,12 +72,14 @@ public class LogsServlet extends HttpServlet{
             return;
         }
         // Filter and sort Persistency.DB
-        List<LogEvent> logList = Persistency.DB.stream()
-                .filter(log -> filterLevel(log.getLevel(), levelParam))
-                // the latest logs first
-                .sorted(Comparator.comparing(this::parseTimestamp).reversed())
-                .limit(Integer.parseInt(limitParam))
-                .toList();
+        List<LogEvent> logList = repository.filterLogs(limitParam, levelParam);
+
+//                Persistency.DB.stream()
+//                .filter(log -> filterLevel(log.getLevel(), levelParam))
+//                // the latest logs first
+//                .sorted(Comparator.comparing(this::parseTimestamp).reversed())
+//                .limit(Integer.parseInt(limitParam))
+//                .toList();
         // Convert to JSON array
         String jsonArray = mapper.writeValueAsString(logList);
         resp.setContentType("application/json");
@@ -93,19 +95,6 @@ public class LogsServlet extends HttpServlet{
      */
     private Instant parseTimestamp(LogEvent log) {
         return Instant.parse(log.getTimestamp());
-    }
-
-
-    /**
-     * Filters log events based on the minimum log level threshold.
-     * @param target the log level of the event to be filtered
-     * @param levelParam the minimum log level threshold for filtering
-     * @return true if the log should be included, false otherwise
-     */
-    private boolean filterLevel(String target, String levelParam){
-        if (levelParam.equals("ALL")) return true;
-        if (levelParam.equals("OFF")) return false;
-        return LEVELS.indexOf(target) >= LEVELS.indexOf(levelParam);
     }
 
 
