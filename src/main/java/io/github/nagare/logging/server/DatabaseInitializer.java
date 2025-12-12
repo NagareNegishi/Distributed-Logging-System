@@ -23,7 +23,7 @@ public class DatabaseInitializer implements ServletContextListener{
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         try {
-            EntityManagerFactory emf = Persistence.createEntityManagerFactory("logDB");
+            EntityManagerFactory emf = Persistence.createEntityManagerFactory("logDB_dev");
             sce.getServletContext().setAttribute(ServletAttributes.EMF_ATTRIBUTE, emf);
         } catch (Exception e) {
             System.err.println("EntityManagerFactory initialization failed!");

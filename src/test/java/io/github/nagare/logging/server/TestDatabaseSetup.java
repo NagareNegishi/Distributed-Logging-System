@@ -14,7 +14,7 @@ public class TestDatabaseSetup {
 
     public static EntityManagerFactory createTestEMF() {
         if (emf == null) {
-            emf = Persistence.createEntityManagerFactory("logDB");
+            emf = Persistence.createEntityManagerFactory("logDB_dev");
         }
         return emf;
     }

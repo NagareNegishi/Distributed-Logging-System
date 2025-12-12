@@ -4,7 +4,7 @@
              version="2.0">
 
     <!-- Identifier for this configuration, only require 1 persistence unit for this project -->
-    <persistence-unit name="logDB">
+    <persistence-unit name="logDB_dev">
         <description>
             Logging Service Database
         </description>

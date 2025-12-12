@@ -9,7 +9,7 @@ import jakarta.persistence.Persistence;
  * While I implement it for test and future use, for this project I will use official way "ServletContextListener"
  */
 public class JPAUtil {
-    private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("logDB");
+    private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("logDB_dev");
 
     public static EntityManagerFactory getEntityManagerFactory() {
         return emf;
