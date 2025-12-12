@@ -8,13 +8,9 @@
         <description>
             Logging Service Database
         </description>
-
         <!-- Explicitly list entity classes -->
         <class>io.github.nagare.logging.server.LogEvent</class>
-
         <properties>
-            <!--  Hibernate can detect, but provide explicitly -->
-            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
             <!-- Database connection settings will be provided by user-->
             <property name="hibernate.hbm2ddl.auto" value="update"/>
             <!-- Echo all executed SQL to console -->
