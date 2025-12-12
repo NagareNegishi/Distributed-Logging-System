@@ -1,24 +1,32 @@
 # Distributed Logging System
 
-An enterprise logging infrastructure built with Java, combining REST APIs, Log4j extensions, and database persistence.
+Enterprise logging infrastructure with remote HTTP appender, REST API, and database persistence.
 
-## Overview
 
-A production-ready logging service that provides:
-- RESTful API for log storage and retrieval
-- Multiple export formats (CSV, HTML, Excel)
-- Log filtering and querying capabilities
-- Command-line client for data export
+## Features
+
+- **Remote HTTP Logging**: Custom Log4j appender sends logs via HTTP POST
+- **JMX Monitoring**: Track appender metrics (success/failure counts) via MBean
+- **Database Persistence**: Hibernate/JPA with H2 in-memory (default) or external DB
+- **RESTful API**: Store, retrieve, filter, delete, and export logs
+- **Multiple Export Formats**: CSV, HTML, Excel
+- **Transaction Management**: ACID compliance for log storage
+
 
 ## Tech Stack
 
 - Java 17
 - Jakarta Servlets + Jetty
 - Maven
-- JSON processing
-- Apache POI (Excel generation)
+- Hibernate/JPA
+- H2 Database (configurable)
+- Apache Log4j
+- Jackson (JSON)
+- Apache POI (Excel)
+
 
 ## Quick Start
+
 ```bash
 # Build
 mvn clean package
@@ -32,38 +40,99 @@ mvn jetty:stop
 
 **Base URL:** `http://localhost:8080/logstore`
 
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/logs` | Store log event |
-| GET | `/logs?limit=N&level=LEVEL` | Retrieve logs |
+| POST | `/logs` | Store log event (JSON) |
+| GET | `/logs?limit=N&level=LEVEL` | Retrieve filtered logs |
 | DELETE | `/logs` | Clear all logs |
-| GET | `/stats/csv` | Export stats as CSV |
-| GET | `/stats/html` | Export stats as HTML |
-| GET | `/stats/excel` | Export stats as Excel |
+| GET | `/stats/csv` | Export statistics as CSV |
+| GET | `/stats/html` | Export statistics as HTML |
+| GET | `/stats/excel` | Export statistics as Excel |
 
-## CLI Client
 
-[//]: # (```bash)
+### Log Levels
+`TRACE` | `DEBUG` | `INFO` | `WARN` | `ERROR` | `FATAL`
 
-[//]: # (# Export to CSV)
+Filter parameters: `ALL` (show all) | `OFF` (show none)
 
-[//]: # (java -cp target/classes client.io.github.nagare.logging.Client csv logs.csv)
+## Configuration
 
-[//]: # ()
-[//]: # (# Export to Excel)
+### HTTP Appender (log4j.properties)
+```properties
+log4j.appender.http=io.github.nagare.logging.log4j.HttpAppender
+log4j.appender.http.url=http://localhost:8080/logstore/logs
+```
 
-[//]: # (java -cp target/classes client.io.github.nagare.logging.Client excel logs.xlsx)
+### Database
+- **Default**: H2 in-memory (no setup required, data cleared on shutdown)
+- **External**: Create `config.properties` in `src/main/resources/`:
+```properties
+db.url=jdbc:your-database-url
+db.user=your-username
+db.password=your-password
+db.driver=your.jdbc.Driver  # Optional, auto-detected if omitted
+```
 
-[//]: # (```)
+**Examples:**
+```properties
+# PostgreSQL (Supabase)
+db.url=jdbc:postgresql://host:5432/database
+db.driver=org.postgresql.Driver
 
-## Project Status
+# MySQL
+db.url=jdbc:mysql://host:3306/database
+db.driver=com.mysql.cj.jdbc.Driver
 
-🚧 **Under Active Development**
+# MariaDB
+db.url=jdbc:mariadb://host:3306/database
+db.driver=org.mariadb.jdbc.Driver
+```
+  - Supports any JDBC-compatible database (Tested with Supabase PostgreSQL)
+  - Requires appropriate JDBC driver in dependencies
 
-This project is being enhanced with:
-- Database persistence layer (JDBC)
-- Custom Log4j appenders
-- Remote HTTP logging
-- JMX monitoring
+
+### JMX Monitoring
+Monitor appender metrics via JConsole or VisualVM:
+
+**MBean Name:** `io.github.nagare.logging.log4j:type=HttpAppender,name=HttpAppenderMBean-N`  
+(where N is the instance number)
+
+**Available Metrics:**
+- `successCount` - Number of successful log transmissions
+- `failureCount` - Number of failed log transmissions
+- `url` - Current target endpoint
+
+
+## Log Event Format
+
+```json
+{
+  "id": "uuid-generated-if-not-provided",
+  "message": "Log message",
+  "timestamp": "2024-12-12T10:15:30Z",
+  "thread": "main",
+  "logger": "com.example.MyClass",
+  "level": "INFO",
+  "errorDetails": "Optional stack trace"
+}
+```
+
+## Architecture
+
+```
+Application → HttpAppender → LogsServlet → LogEventRepository → Database
+                    ↓
+               JMX MBean (monitoring)
+```
+
+## Development Notes
+
+- Logs can be sent via HttpAppender or direct HTTP POST
+- UUID auto-generation for log events without ID
+- Duplicate prevention by ID
+- ISO-8601 timestamp validation
+- Thread-safe transaction management
+- Graceful failure handling (logging errors don't crash app)
