@@ -2,7 +2,6 @@ package io.github.nagare.logging.server;
 
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
@@ -12,6 +11,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 
 /**
  * Official way of managing Lifecycle of EntityManagerFactory
@@ -49,8 +49,14 @@ public class DatabaseInitializer implements ServletContextListener{
 
 
     /**
-     *
-     * @return
+     * Create EntityManagerFactory based on config.properties
+     * IMPORTANT: If config.properties is missing, use H2 database by default and it will drop all data on shutdown
+     * config.properties format:
+     *  db.url=url_to_your_database
+     *  db.user=yourusername
+     *  db.password=yourpassword
+     *  db.driver=your.jdbc.DriverClassName (optional)
+     * @return EntityManagerFactory
      */
     private EntityManagerFactory createEMF() {
         try {
