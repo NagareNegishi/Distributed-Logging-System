@@ -7,6 +7,12 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
 /**
  * Official way of managing Lifecycle of EntityManagerFactory
  * ServletContext is like "Global HashMap"
@@ -23,7 +29,7 @@ public class DatabaseInitializer implements ServletContextListener{
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         try {
-            EntityManagerFactory emf = Persistence.createEntityManagerFactory("logDB_dev");
+            EntityManagerFactory emf = createEMF();
             sce.getServletContext().setAttribute(ServletAttributes.EMF_ATTRIBUTE, emf);
         } catch (Exception e) {
             System.err.println("EntityManagerFactory initialization failed!");
@@ -40,4 +46,34 @@ public class DatabaseInitializer implements ServletContextListener{
             emf.close();
         }
     }
+
+
+    /**
+     *
+     * @return
+     */
+    private EntityManagerFactory createEMF() {
+        try {
+            InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties");
+            if (input == null) { // No config = H2
+                return Persistence.createEntityManagerFactory("logDB-dev");
+            }
+
+            Properties props = new Properties();
+            props.load(input);
+            Map<String, String> properties = new HashMap<>();
+            properties.put("jakarta.persistence.jdbc.url", props.getProperty("db.url"));
+            properties.put("jakarta.persistence.jdbc.user", props.getProperty("db.user"));
+            properties.put("jakarta.persistence.jdbc.password", props.getProperty("db.password"));
+            // Let user override driver if they want
+            String driver = props.getProperty("db.driver");
+            if (driver != null) { properties.put("jakarta.persistence.jdbc.driver", driver); }
+
+            return Persistence.createEntityManagerFactory("logDB", properties);
+        } catch (IOException e) {
+            System.err.println("Failed to load config.properties, falling back to H2: " + e.getMessage());
+            return Persistence.createEntityManagerFactory("logDB-dev");
+        }
+    }
+
 }
