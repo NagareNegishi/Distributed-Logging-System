@@ -3,8 +3,8 @@
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
 
-    <!-- Identifier for this configuration, only require 1 persistence unit for this project -->
-    <persistence-unit name="logDB_dev">
+    <!-- Identifier for this configuration, 1 persistence unit for production -->
+    <persistence-unit name="logDB">
         <description>
             Logging Service Database
         </description>
@@ -13,23 +13,38 @@
         <class>io.github.nagare.logging.server.LogEvent</class>
 
         <properties>
+            <!--  Hibernate can detect, but provide explicitly -->
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <!-- Database connection settings will be provided by user-->
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <!-- Echo all executed SQL to console -->
+            <property name="hibernate.show_sql" value="false" />
+            <property name="hibernate.format_sql" value="true" />
+            <property name="hibernate.highlight_sql" value="true" />
+        </properties>
+    </persistence-unit>
+
+    <!-- 1 persistence unit for development stage/testing -->
+    <persistence-unit name="logDB_dev">
+        <description>
+            Logging Service Database for development stage
+        </description>
+        <!-- Explicitly list entity classes -->
+        <class>io.github.nagare.logging.server.LogEvent</class>
+        <properties>
             <!-- Database connection settings -->
             <!-- mem:database name = in-memory database -> Data lost when app stops -->
             <!-- Alternative: jdbc:h2:file:./data/logDB for file-based persistence -->
             <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:logDB;DB_CLOSE_DELAY=-1" /> <!-- Database connection URL -->
             <property name="jakarta.persistence.jdbc.user" value="sa" /> <!-- sa is H2's default admin user, "system administrator" -->
             <property name="jakarta.persistence.jdbc.password" value="" />
-
             <!-- Automatically export the schema -->
             <property name="jakarta.persistence.schema-generation.database.action" value="create" />
-
             <!-- Echo all executed SQL to console -->
-<!--  temporary turn off          <property name="hibernate.show_sql" value="true" />-->
-            <property name="hibernate.show_sql" value="false" />
+            <property name="hibernate.show_sql" value="false" />  <!-- too noisy fo test -->
             <property name="hibernate.format_sql" value="true" />
             <property name="hibernate.highlight_sql" value="true" />
         </properties>
-
     </persistence-unit>
 
 </persistence>
