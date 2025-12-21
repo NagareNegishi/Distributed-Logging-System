@@ -10,6 +10,7 @@ target/
 
 # Log files (Derby database logs, etc.)
 *.log
+logs.txt
 
 # IntelliJ module files
 *.iml
