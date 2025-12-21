@@ -103,6 +103,7 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>2.3.232</version>
+            <scope>runtime</scope>  <!-- Add this explicitly to avoid Docker issue -->
         </dependency>
 
         <!-- PostgreSQL for production -->
@@ -162,5 +163,16 @@
                 </executions>
             </plugin>
         </plugins>
+
+        <!-- Exclude config.properties from the final WAR -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>config.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
     </build>
 </project>
