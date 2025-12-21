@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Copy pom.xml and download dependencies (cached layer)
 COPY pom.xml .
-RUN mvn dependency:go-offline -DskipTests
+# RUN mvn dependency:go-offline -DskipTests
 
 # Copy source code and build
 COPY src ./src
