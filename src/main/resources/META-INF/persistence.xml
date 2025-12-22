@@ -31,17 +31,17 @@
             <!-- Database connection settings -->
             <!-- mem:database name = in-memory database -> Data lost when app stops -->
             <!-- Alternative: jdbc:h2:file:./data/logDB for file-based persistence -->
-
-
-
-            <!-- <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:logDB;DB_CLOSE_DELAY=-1" /> Database connection URL -->
-            <!-- <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:logDB;DB_CLOSE_DELAY=-1;MODE=LEGACY" /> -->
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:logDB" />
-            
-            
-            
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:logDB;DB_CLOSE_DELAY=-1" /> <!-- Database connection URL -->
             <property name="jakarta.persistence.jdbc.user" value="sa" /> <!-- sa is H2's default admin user, "system administrator" -->
             <property name="jakarta.persistence.jdbc.password" value="" />
+
+
+            <!-- Explicitly specify the JDBC driver and Hibernate dialect for Docker environment -->
+            <!-- can be removed? -->
+            <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver" />
+            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect" />
+            
+            
             <!-- Automatically export the schema -->
             <property name="jakarta.persistence.schema-generation.database.action" value="create" />
             <!-- Echo all executed SQL to console -->
