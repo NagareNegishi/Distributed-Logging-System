@@ -102,6 +102,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <!-- <version>2.1.214</version> -->
             <version>2.3.232</version>
             <!-- <scope>runtime</scope>  Add this explicitly to avoid Docker issue -->
         </dependency>
@@ -117,6 +118,7 @@
     </dependencies>
 
     <build>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -165,14 +167,37 @@
         </plugins>
 
         <!-- Exclude config.properties from the final WAR -->
-<!--        <resources>-->
-<!--            <resource>-->
-<!--                <directory>src/main/resources</directory>-->
-<!--                <excludes>-->
-<!--                    <exclude>config.properties</exclude>-->
-<!--                </excludes>-->
-<!--            </resource>-->
-<!--        </resources>-->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <!-- Exclude config.properties ONLY during Docker build -->
+                    <exclude>${exclude.config}</exclude>
+                </excludes>
+            </resource>
+        </resources>
 
     </build>
+
+    <profiles>
+        <!-- Default profile: include config.properties (for local dev) -->
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <exclude.config>NOTHING</exclude.config>
+            </properties>
+        </profile>
+
+        <!-- Docker profile: exclude config.properties -->
+        <profile>
+            <id>docker</id>
+            <properties>
+                <exclude.config>config.properties</exclude.config>
+            </properties>
+        </profile>
+    </profiles>
+    
 </project>
