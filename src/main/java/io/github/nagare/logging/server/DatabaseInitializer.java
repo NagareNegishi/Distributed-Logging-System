@@ -34,14 +34,6 @@ public class DatabaseInitializer implements ServletContextListener{
         } catch (Exception e) {
             System.err.println("EntityManagerFactory initialization failed!");
             e.printStackTrace();
-
-            // For debugging root cause
-            // Throwable cause = e;
-            // while (cause.getCause() != null) {
-            //     cause = cause.getCause();
-            //     System.err.println("ROOT CAUSE: " + cause.getClass().getName() + ": " + cause.getMessage());
-            // }
-            
             throw  new RuntimeException("Cannot start application", e);
         }
     }
