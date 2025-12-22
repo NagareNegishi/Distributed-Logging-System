@@ -7,21 +7,31 @@ WORKDIR /app
 
 # Copy pom.xml and download dependencies (cached layer)
 COPY pom.xml .
-# RUN mvn dependency:go-offline -DskipTests
+RUN mvn dependency:go-offline -DskipTests -Pdocker
 
 # Copy source code and build
 COPY src ./src
-RUN mvn package -DskipTests
+# -Pdocker activates the Maven profile named "docker"
+RUN mvn package -DskipTests -Pdocker
 
 
 ################################################################################
 # Stage 2: Run with Jetty
 FROM jetty:11-jre17
 
-# Copy WAR file to Jetty webapps
-COPY --from=build /app/target/*.war /var/lib/jetty/webapps/ROOT.war
-
+# Copy WAR file to Jetty webapps, if want to deploy as root app, use ROOT.war instead of logstore.war
+COPY --from=build /app/target/*.war /var/lib/jetty/webapps/logstore.war
 EXPOSE 8080
+
+
+################################################################################
+# Alternative Stage 2: Run with Tomcat
+# FROM tomcat:10-jre17
+# # Copy WAR file to Tomcat webapps
+# COPY --from=build /app/target/*.war /usr/local/tomcat/webapps/logstore.war
+# EXPOSE 8080
+
+
 
 
 
