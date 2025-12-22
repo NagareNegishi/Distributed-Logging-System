@@ -35,7 +35,8 @@
 
 
             <!-- <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:logDB;DB_CLOSE_DELAY=-1" /> Database connection URL -->
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:logDB;DB_CLOSE_DELAY=-1;MODE=LEGACY" />
+            <!-- <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:logDB;DB_CLOSE_DELAY=-1;MODE=LEGACY" /> -->
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:logDB" />
             
             
             
