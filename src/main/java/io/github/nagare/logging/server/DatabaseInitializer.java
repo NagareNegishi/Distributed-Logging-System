@@ -70,7 +70,7 @@ public class DatabaseInitializer implements ServletContextListener{
         try {
             InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties");
             if (input == null) { // No config = H2
-                return Persistence.createEntityManagerFactory("logDB-dev");
+                return Persistence.createEntityManagerFactory("logDB_dev");
             }
 
             Properties props = new Properties();
@@ -86,7 +86,7 @@ public class DatabaseInitializer implements ServletContextListener{
             return Persistence.createEntityManagerFactory("logDB", properties);
         } catch (IOException e) {
             System.err.println("Failed to load config.properties, falling back to H2: " + e.getMessage());
-            return Persistence.createEntityManagerFactory("logDB-dev");
+            return Persistence.createEntityManagerFactory("logDB_dev");
         }
     }
 
