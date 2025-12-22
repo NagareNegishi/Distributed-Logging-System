@@ -11,21 +11,24 @@ Enterprise logging infrastructure with remote HTTP appender, REST API, and datab
 - **RESTful API**: Store, retrieve, filter, delete, and export logs
 - **Multiple Export Formats**: CSV, HTML, Excel
 - **Transaction Management**: ACID compliance for log storage
+- **Docker Support**: Easy containerized deployment
 
 
 ## Tech Stack
 
 - Java 17
-- Jakarta Servlets + Jetty
+- Jakarta Servlets + Jetty/Tomcat
 - Maven
 - Hibernate/JPA
-- H2 Database (configurable)
+- H2 Database (development) / PostgreSQL (production)
 - Apache Log4j
 - Jackson (JSON)
 - Apache POI (Excel)
 
 
 ## Quick Start
+
+### Local Development
 
 ```bash
 # Build
@@ -40,6 +43,28 @@ mvn jetty:stop
 
 **Base URL:** `http://localhost:8080/logstore`
 
+### Docker Deployment
+
+**Option 1: Quick test with H2 (logs lost on restart)**
+```bash
+docker compose up --build
+```
+
+**Option 2: Production with external database (recommended)**
+```bash
+# 1. Create .env file from example
+cp .env.example .env
+
+# 2. Edit .env with your database credentials
+# DB_URL=jdbc:postgresql://your-host:5432/your-database
+# DB_USER=your-username
+# DB_PASSWORD=your-password
+# DB_DRIVER=org.postgresql.Driver
+
+# 3. Start the application
+docker compose up --build
+```
+
 
 ## API Endpoints
 
@@ -52,11 +77,11 @@ mvn jetty:stop
 | GET | `/stats/html` | Export statistics as HTML |
 | GET | `/stats/excel` | Export statistics as Excel |
 
-
 ### Log Levels
 `TRACE` | `DEBUG` | `INFO` | `WARN` | `ERROR` | `FATAL`
 
 Filter parameters: `ALL` (show all) | `OFF` (show none)
+
 
 ## Configuration
 
@@ -67,13 +92,30 @@ log4j.appender.http.url=http://localhost:8080/logstore/logs
 ```
 
 ### Database
-- **Default**: H2 in-memory (no setup required, data cleared on shutdown)
-- **External**: Create `config.properties` in `src/main/resources/`:
+The application checks for database configuration in this order:
+
+1. **Environment variables** (Docker `.env` file)
+2. **config.properties** (local development)
+3. **H2 in-memory** (fallback, NOT for production)
+
+#### Docker Deployment (.env file)
+
+Create `.env` in project root (see `.env.example`):
+```env
+DB_URL=jdbc:postgresql://your-host:5432/your-database
+DB_USER=your-username
+DB_PASSWORD=your-password
+DB_DRIVER=org.postgresql.Driver
+```
+
+#### Local Development (config.properties)
+
+Create `src/main/resources/config.properties`:
 ```properties
-db.url=jdbc:your-database-url
+db.url=jdbc:postgresql://host:5432/database
 db.user=your-username
 db.password=your-password
-db.driver=your.jdbc.Driver  # Optional, auto-detected if omitted
+db.driver=org.postgresql.Driver  # Optional, auto-detected if omitted
 ```
 
 **Examples:**
@@ -92,6 +134,7 @@ db.driver=org.mariadb.jdbc.Driver
 ```
   - Supports any JDBC-compatible database (Tested with Supabase PostgreSQL)
   - Requires appropriate JDBC driver in dependencies
+  - Default is H2 in-memory (no setup required, data cleared on shutdown)
 
 
 ### JMX Monitoring
